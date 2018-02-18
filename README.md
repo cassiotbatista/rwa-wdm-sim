@@ -1,2 +1,4 @@
-# RWA-WDM-SLE-GA
-A Genetic Algorithm for Routing and Wavelength Assignment in WDM All-Optical Networks with Static Traffic
+# RWA WDM SLE GA
+A Genetic Algorithm (GA) for Routing and Wavelength Assignment (RWA) in
+All-Optical Wavelength Division Multiplexing (WDM) Networks with Static Traffic
+(SLE, Static Lightpath Establishment)
