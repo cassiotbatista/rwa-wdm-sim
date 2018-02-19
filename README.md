@@ -1,4 +1,4 @@
-# Routing and Wavelength Assignment using a Genetic Algorithm
+## Routing and Wavelength Assignment using a Genetic Algorithm
 [Paper](https://link.springer.com/chapter/10.1007%2F978-3-319-65340-2_35): 
 A Genetic Algorithm (GA) Approach for Routing and Wavelength Assignment (RWA) in
 All-Optical Wavelength Division Multiplexing (WDM) Networks with Static Traffic
@@ -8,8 +8,8 @@ This repo basically basically covers the routing and wavelength assignment
 problem with the following algorithms:
 
 * Routing 
-   * Dijkstra's algorithm  
-   * Yen's algorithm (also known as K-shortest path algorithm)  
+   - Dijkstra's algorithm  
+   - Yen's algorithm (also known as K-shortest path algorithm)  
 
 * Wavelength Assignment 
    * First-fit algorithm  
