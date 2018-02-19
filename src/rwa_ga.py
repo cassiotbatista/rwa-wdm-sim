@@ -18,6 +18,10 @@
 # A New Proposal of an Efficient Algorithm for Routing and Wavelength 
 # Assignment (RWA) in Optical Networks
 
+
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import info
 import nsf
 

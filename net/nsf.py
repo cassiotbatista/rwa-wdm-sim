@@ -7,16 +7,21 @@
 # Routing and Wavelength Assignment
 # General Objective Function
 #
-# Author: April 2016
+# Author: Apr 2016
 # Cassio Trindade Batista - cassio.batista.13@gmail.com
 # Federal University of Pará (UFPA). Belém, Brazil.
 #
-# Last revised on February 2017
+# Last edited on Feb 2018
+#
+# References:
+# - random 'biased' choice: https://stackoverflow.com/q/25507558
+# - import from parent dir: https://stackoverflow.com/a/30536516
 
 
-import sys
+import sys, os
 reload(sys)  
 sys.setdefaultencoding('utf8') # for plot in PT_BR
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import info
 import random
@@ -28,43 +33,45 @@ from matplotlib.ticker import EngFormatter
 
 
 def generate():
-	def set_wave_availability():
-		nwaves = 2**info.NSF_NUM_CHANNELS
-		if info.NSF_CHANNEL_FREE:
-			return np.uint8(nwaves-1)
-		return np.uint8(random.randrange(1, nwaves))
 
 	# define links or edges as node index pairs 
 	nsf_links = [\
-		(0,1), (0,2), (0,5),  # 0
-		(1,2), (1,3),         # 1
-		(2,8),                # 2
-		(3,4), (3,6), (3,13), # 3
-		(4,9),                # 4
-		(5,6), (5,10),        # 5
-		(6,7),                # 6
-		(7,8),                # 7
-		(8,9),                # 8
-		(9,11), (9,12),       # 9
-		(10,11), (10,12),     # 10
-		(11,13)               # 11
+		(0,1),   (0,2),  (0,5),  # 0
+		(1,2),   (1,3),          # 1
+		(2,8),                   # 2
+		(3,4),   (3,6),  (3,13), # 3
+		(4,9),                   # 4
+		(5,6),   (5,10),         # 5
+		(6,7),                   # 6
+		(7,8),                   # 7
+		(8,9),                   # 8
+		(9,11),  (9,12),         # 9
+		(10,11), (10,12),        # 10
+		(11,13)                  # 11
 	]
 
-	nsf_wave = np.zeros((info.NSF_NUM_NODES, info.NSF_NUM_NODES), dtype=np.uint8)
+	# wavelength availability 3D matrix: range of the values is [0,1] (int bin)
+	dimension = (info.NSF_NUM_NODES, info.NSF_NUM_NODES, info.NSF_NUM_CHANNELS)
+	nsf_wave = np.zeros(dimension, dtype=np.uint8)
 	for link in nsf_links:
-		nsf_wave[link[0]][link[1]] = set_wave_availability() 
-		nsf_wave[link[1]][link[0]] = nsf_wave[link[0]][link[1]] 
+		for w in xrange(NSF_NUM_CHANNELS):
+			nsf_wave[link[0]][link[1]][w] = np.random.choice((0,1), p=NSF_CHANNEL_BIAS)
+			nsf_wave[link[1]][link[0]][w] = nsf_wave[link[0]][link[1]][w]
 
-	nsf_adj = np.zeros((info.NSF_NUM_NODES, info.NSF_NUM_NODES), dtype=np.uint8)
+	# adjacency 2D matrix: range of the values is [0,1] (int bin)
+	dimension = (info.NSF_NUM_NODES, info.NSF_NUM_NODES)
+	nsf_adj = np.zeros(dimension, dtype=np.uint8)
 	for link in nsf_links:
 		nsf_adj[link[0]][link[1]] = 1
 		nsf_adj[link[1]][link[0]] = nsf_adj[link[0]][link[1]] 
 
-	nsf_time = np.zeros((info.NSF_NUM_NODES, info.NSF_NUM_NODES, info.NSF_NUM_CHANNELS))
+	# traffic time 3D matrix: range of the values is [0,1] (float)
+	dimension = (info.NSF_NUM_NODES, info.NSF_NUM_NODES, info.NSF_NUM_CHANNELS)
+	nsf_time = np.zeros(dimension, dtype=np.float64)
 	for link in nsf_links:
-		availability = format(nsf_wave[link[0]][link[1]], '0%db' % info.NSF_NUM_CHANNELS)
 		for w in xrange(info.NSF_NUM_CHANNELS):
-			nsf_time[link[0]][link[1]][w] = int(availability[w]) * np.random.rand()
+			availability = nsf_wave[link[0]][link[1]][w]
+			nsf_time[link[0]][link[1]][w] = availability * np.random.rand()
 			nsf_time[link[1]][link[0]][w] = nsf_time[link[0]][link[1]][w]
 
 	return nsf_wave, nsf_adj, nsf_time, nsf_links
@@ -167,8 +174,5 @@ def plot_graph(bestroute=False):
 	plt.xticks(np.arange(0, 9, 1))
 	plt.yticks(np.arange(0, 7, 1))
 	plt.show(block=True)
-
-#def nsfnet_generator_recover():
-#''.join( [random.choice((0,1)) for i in xrange(info.NSF_NUM_NODES)] )
 
 ### EOF ###

@@ -1,8 +1,23 @@
-# RWA WDM SLE GA
+# Routing and Wavelength Assignment using a Genetic Algorithm
 [Paper](https://link.springer.com/chapter/10.1007%2F978-3-319-65340-2_35): 
-A Genetic Algorithm (GA) for Routing and Wavelength Assignment (RWA) in
+A Genetic Algorithm (GA) Approach for Routing and Wavelength Assignment (RWA) in
 All-Optical Wavelength Division Multiplexing (WDM) Networks with Static Traffic
 (SLE, which stands for _Static Lightpath Establishment_)
+
+This repo basically basically covers the routing and wavelength assignment
+problem with the following algorithms:
+
+* Routing 
+... 1. Dijkstra's algorithm
+... 2. Yen's algorithm (also known as K-shortest path algorithm)
+
+* Wavelength Assignment
+... 1. First-fit algorithm
+... 2. Vertex coloring algorithm
+
+* RWA as one
+... 1. General Objective Function
+... 2. Genetic algorithm (ours :)
 
 ## Citation
 
@@ -20,6 +35,7 @@ If you use this code or want to mention the paper referred above, please cite:
 	publisher  = {Springer International Publishing},
 	address    = {Cham},
 	pages      = {421--432},
+	doi        = {10.1007/978-3-319-65340-2_35},
 	isbn       = {978-3-319-65340-2}
 }
 ```
