@@ -7,15 +7,15 @@ All-Optical Wavelength Division Multiplexing (WDM) Networks with Static Traffic
 This repo basically basically covers the routing and wavelength assignment
 problem with the following algorithms:
 
-* Routing 
+* Routing  
 ...1. Dijkstra's algorithm  
 ...2. Yen's algorithm (also known as K-shortest path algorithm)  
 
-* Wavelength Assignment
+* Wavelength Assignment  
 ...1. First-fit algorithm  
 ...2. Vertex coloring algorithm  
 
-* RWA as one
+* RWA as one  
 ...1. General Objective Function  
 ...2. Genetic algorithm (ours :)  
 
