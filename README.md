@@ -8,16 +8,16 @@ This repo basically basically covers the routing and wavelength assignment
 problem with the following algorithms:
 
 * Routing 
-... 1. Dijkstra's algorithm
-... 2. Yen's algorithm (also known as K-shortest path algorithm)
+...1. Dijkstra's algorithm
+...2. Yen's algorithm (also known as K-shortest path algorithm)
 
 * Wavelength Assignment
-... 1. First-fit algorithm
-... 2. Vertex coloring algorithm
+...1. First-fit algorithm
+...2. Vertex coloring algorithm
 
 * RWA as one
-... 1. General Objective Function
-... 2. Genetic algorithm (ours :)
+...1. General Objective Function
+...2. Genetic algorithm (ours :)
 
 ## Citation
 
