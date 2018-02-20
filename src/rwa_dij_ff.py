@@ -36,7 +36,7 @@ def dijkstra(mat, (s,d)):
 def get_wave_availability(k, n):
 	return (int(n) & ( 1 << k )) >> k
 
-def rwa_fix(N, A, T, holding_time):
+def rwa_dij_ff(N, A, T, holding_time):
 	SD = (info.NSF_SOURCE_NODE, info.NSF_DEST_NODE)
 	R = dijkstra(A, SD)
 

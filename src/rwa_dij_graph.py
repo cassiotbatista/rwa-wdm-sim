@@ -65,7 +65,7 @@ def greedy_color(H, colors, strategy=nx.coloring.strategy_largest_first):
 def get_wave_availability(k, n):
 	return (int(n) & ( 1 << k )) >> k
 
-def rwa_std_fix(N, A, T, holding_time, paths):
+def rwa_dij_graph(N, A, T, holding_time, paths):
 	SD = (info.NSF_SOURCE_NODE, info.NSF_DEST_NODE)
 	R = dijkstra(A,SD)
 	paths.append([R, None])
