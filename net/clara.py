@@ -32,9 +32,6 @@ class CooperacionLatinoAmericana(Network):
 		self.source_node = 0   # source node defined for all connections
 		self.dest_node   = 12  # destination node defined for all connections
 
-		self.block_count = 0
-		self.block_list  = []
-
 	def get_edges(self):
 		""" get """
 		return [\

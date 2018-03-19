@@ -25,18 +25,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import info
 import networkx as nx
 
-# https://networkx.github.io/documentation/networkx-1.10/reference/algorithms.simple_paths.html
-def yen(mat, (s,d), k):
-	if any([s,d])<0 or any([s,d])>mat.shape[0] or k<0:
-		print 'Error'
-		return None
-	G = nx.from_numpy_matrix(mat, create_using=nx.Graph())
-	paths = list(nx.shortest_simple_paths(G, s, d, weight=None))
-	return paths[:k]
-
-def get_wave_availability(k, n):
-	return (int(n) & ( 1 << k )) >> k
-
 def rwa_yen_ff(N, A, T, holding_time):
 	SD = (info.NSF_SOURCE_NODE, info.NSF_DEST_NODE)
 

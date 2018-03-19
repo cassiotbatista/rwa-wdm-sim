@@ -8,16 +8,16 @@ This repo basically basically covers the routing and wavelength assignment
 problem with the following algorithms:
 
 * Routing 
-   - Dijkstra's algorithm  
-   - Yen's algorithm (also known as K-shortest path algorithm)  
+  * Dijkstra's algorithm  
+  * Yen's algorithm (also known as K-shortest path algorithm)  
 
 * Wavelength Assignment 
-   * First-fit algorithm  
-   * Vertex coloring algorithm  
+  * First-fit algorithm  
+  * Vertex coloring algorithm  
 
 * RWA as one 
-   * General Objective Function  
-   * Genetic algorithm (ours :)  
+  * General Objective Function  
+  * Genetic algorithm (ours :)  
 
 ## Citation
 
@@ -27,15 +27,15 @@ If you use this code or want to mention the paper referred above, please cite:
 
 ```
 @inproceedings{Teixeira17,
-	author     = {Teixeira, Diego Bento A. and Batista, Cassio T. and Cardoso, Afonso Jorge F. and de S. Ara{\'u}jo, Josivaldo},
-	editor     = {Oliveira, Eug{\'e}nio and Gama, Jo{\~a}o and Vale, Zita and Lopes Cardoso, Henrique},
-	title      = {A Genetic Algorithm Approach for Static Routing and Wavelength Assignment in All-Optical WDM Networks},
-	booktitle  = {Progress in Artificial Intelligence},
-	year       = {2017},
-	publisher  = {Springer International Publishing},
-	address    = {Cham},
-	pages      = {421--432},
-	doi        = {10.1007/978-3-319-65340-2_35},
-	isbn       = {978-3-319-65340-2}
+	author    = {Teixeira, Diego Bento A. and Batista, Cassio T. and Cardoso, Afonso Jorge F. and de S. Ara{\'u}jo, Josivaldo},
+	editor    = {Oliveira, Eug{\'e}nio and Gama, Jo{\~a}o and Vale, Zita and Lopes Cardoso, Henrique},
+	title     = {A Genetic Algorithm Approach for Static Routing and Wavelength Assignment in All-Optical WDM Networks},
+	booktitle = {Progress in Artificial Intelligence},
+	year      = {2017},
+	publisher = {Springer International Publishing},
+	address   = {Cham},
+	pages     = {421--432},
+	doi       = {10.1007/978-3-319-65340-2_35},
+	isbn      = {978-3-319-65340-2}
 }
 ```

@@ -10,7 +10,7 @@
 # Cassio Trindade Batista - cassio.batista.13@gmail.com
 # Federal University of Pará (UFPA). Belém, Brazil.
 #
-# Last revised on Apr 2017
+# Last revised on Mar 2018
 #
 # REFERENCES:
 # [1] 
@@ -18,79 +18,53 @@
 # A New Proposal of an Efficient Algorithm for Routing and Wavelength 
 # Assignment (RWA) in Optical Networks
 
-import sys, os
+import sys
+import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import info
 import networkx as nx
 
-# https://networkx.github.io/documentation/networkx-1.10/reference/algorithms.shortest_paths.html
-def dijkstra(mat, (s,d)):
-	if any([s,d])<0 or any([s,d])>mat.shape[0]:
-		print 'Error'
-		return None, None
-	G = nx.from_numpy_matrix(mat, create_using=nx.Graph())
-	hops, path = nx.bidirectional_dijkstra(G, s, d, weight=None)
-	return path
+class DijkstraFirstFit(RWAAlgorithm):
+	def __init__(self):
+		super(DijkstraFirstFit).__init__(self)
+		self.name     = 'DFF'
+		self.fullname = 'Dijkstra and First Fit'
 
-def get_wave_availability(k, n):
-	return (int(n) & ( 1 << k )) >> k
+	def routing(self, adj_mtx, source, destination):
+		return self.dijkstra(adj_mtx, source, destination)
 
-def rwa_dij_ff(N, A, T, holding_time):
-	SD = (info.NSF_SOURCE_NODE, info.NSF_DEST_NODE)
-	R = dijkstra(A, SD)
+	def wavelength_assignment(self):
+		return self.first_fit()
 
-	## GLOBAL KNOWLEDGE first fit wavelength assignment
-	#color = None
-	#avail = 2**info.NSF_NUM_CHANNELS-1
-	#for r in xrange(len(R)-1):
-	#	rcurr = R[r]
-	#	rnext = R[r+1]
+	def rwa(self, N, A, T, s, d, holding_time):
+		""" This method RWAs """
+		# call the routing method
+		route = self.routing(A, s, d)
 
-	#	avail &= N[rcurr][rnext]
+		# call the wavelength assignment method
+		# TODO
+		wavelength = self.wavelength_assignment(route, N, route, CHANNELS FIXME)
 
-	#	if avail == 0:
-	#		break
+		if wavelength is not None:
+			# if available on all links of R, alloc net resources for the call
+			length = len(route)
+			for r in xrange(length-1):
+				rcurr = route[r]
+				rnext = route[r+1]
 
-	#	if avail > 0:
-	#		color = format(avail, '0%db' % info.NSF_NUM_CHANNELS)[::-1].index('1')
-	#		break
+				# make λ NOT available on all links of the path 
+				# do not forget to make the wavelength matrix symmetrical
+				N[rcurr][rnext][wavelength] = 0
+				N[rnext][rcurr][wavelength] = N[rcurr][rnext][wavelength] # symm.
+		
+				# assign a time for it to be free again (released)
+				# do not forget to make the traffic matrix symmetrical
+				T[rcurr][rnext][wavelength] = holding_time
+				T[rnext][rcurr][wavelength] = T[rcurr][rnext][wavelength] # symm.
 	
-	# LOCAL KNOWLEDGE first fit wavelength assignment
-	color = None
-	rcurr, rnext = R[0], R[1]
-	# Check whether each wavelength ...
-	for w in xrange(info.NSF_NUM_CHANNELS):
-		# ... is available on the first link of route R
-		if get_wave_availability(w, N[rcurr][rnext]):
-			color = w
-			break
+			return 0 # allocated
+		else:
+			return 1 # block
 
-	if color is not None:
-		# LOCAL KNOWLEDGE check if the color chosen at the first link is
-		# availble on all links of the route R
-		for r in xrange(len(R)-1):
-			rcurr = R[r]
-			rnext = R[r+1]
-
-			# if not available in any of the next links, block
-			if not get_wave_availability(color, N[rcurr][rnext]):
-				return 1 # blocked
-
-		# if available on all links of R, alloc net resources for the call
-		for r in xrange(len(R)-1):
-			rcurr = R[r]
-			rnext = R[r+1]
-
-			N[rcurr][rnext] -= 2**color
-			N[rnext][rcurr] = N[rcurr][rnext] # make it symmetric
-	
-			T[rcurr][rnext][color] = holding_time
-			T[rnext][rcurr][color] = T[rcurr][rnext][color]
-
-		return 0 # allocated
-	else:
-		return 1 # blocked
-
-#color = format(avail, '0%db' % info.NSF_NUM_CHANNELS)[::-1].index('1')
 ### EOF ###

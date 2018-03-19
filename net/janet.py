@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 # vim: set fileencoding=utf-8
@@ -33,23 +32,19 @@ class JointAcademic(Network):
 		self.source_node = 0   # source node defined for all connections
 		self.dest_node   = 12  # destination node defined for all connections
 
-		self.block_count = 0
-		self.block_list  = []
-
 	def get_edges(self):
 		""" get """
 		return [\
-			(0,1), (0,2),				#0
-			(1,2), (1,3),				#1
-			(2,4), 						#2
-			(3,4), (3,5), #(3,6),		#3
-			(4,6),						#4
-			(5,6)						#5
+			(0,1), (0,2),                # 0
+			(1,2), (1,3),                # 1
+			(2,4),                       # 2
+			(3,4), (3,5), #(3,6),        # 3
+			(4,6),                       # 4
+			(5,6)                        # 5
 		]
 
 	def get_nodes_2D_pos(self):
 		""" Get position of the nodes on the bidimensional Cartesian plan
-	
 			This might be useful for plotting the topology as a undirected, 
 			unweighted graph
 		"""

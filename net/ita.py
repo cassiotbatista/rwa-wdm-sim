@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 # vim: set fileencoding=utf-8
@@ -25,7 +24,7 @@ class Italian(Network):
 	def __init__(self):
 		super(Italian).__init__(self)
 		self.name        = 'ITA'
-		self.fullname    = u''
+		self.fullname    = u'Italian'
 		self.num_nodes   = len(self.get_nodes_2D_pos())
 		self.num_links   = len(self.get_edges())
 
@@ -33,32 +32,29 @@ class Italian(Network):
 		self.source_node = 0   # source node defined for all connections
 		self.dest_node   = 12  # destination node defined for all connections
 
-		self.block_count = 0
-		self.block_list  = []
-
 	def get_edges(self):
 		""" get """
 		return [\
-			(0,1), (0,2),							# 0
-			(1,2), (1,3), (1,4),					# 1
-			(2,7), (2,8), (2,9),					# 2
-			(3,4), (3,5), 							# 3
-			(4,6), (4,7),							# 4
-			(5,6),									# 5
-			(6,7),									# 6
-			(7,9), (7,10),							# 7
-			(8,9), (8,12),							# 8
-			(9,11), (9,12),							# 9
-			(10,13),								# 10
-			(11,12), (11,13),						# 11
-			(12,14), (12,20),						# 12
-			(13,14), (13,15),						# 13
-			(14,15), (14,16), (14,18), (14,19),		# 14
-			(15,16),								# 15
-			(16,17),								# 16
-			(17,18),								# 17
-			(18,19),								# 18
-			(19,20)									# 19
+			(0,1), (0,2),                        #  0
+			(1,2), (1,3), (1,4),                 #  1
+			(2,7), (2,8), (2,9),                 #  2
+			(3,4), (3,5),                        #  3
+			(4,6), (4,7),                        #  4
+			(5,6),                               #  5
+			(6,7),                               #  6
+			(7,9), (7,10),                       #  7
+			(8,9), (8,12),                       #  8
+			(9,11), (9,12),                      #  9
+			(10,13),                             # 10
+			(11,12), (11,13),                    # 11
+			(12,14), (12,20),                    # 12
+			(13,14), (13,15),                    # 13
+			(14,15), (14,16), (14,18), (14,19),  # 14
+			(15,16),                             # 15
+			(16,17),                             # 16
+			(17,18),                             # 17
+			(18,19),                             # 18
+			(19,20)                              # 19
 		]
 
 	def get_nodes_2D_pos(self):

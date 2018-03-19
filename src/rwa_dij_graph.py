@@ -28,42 +28,6 @@ import itertools
 import numpy as np
 import networkx as nx
 
-# https://networkx.github.io/documentation/networkx-1.10/reference/algorithms.shortest_paths.html
-def dijkstra(mat, (s,d)):
-	if any([s,d])<0 or any([s,d])>mat.shape[0]:
-		print 'Error'
-		return None, None
-	G = nx.from_numpy_matrix(mat, create_using=nx.Graph())
-	hops, path = nx.bidirectional_dijkstra(G, s, d, weight=None)
-	return path
-
-# https://networkx.github.io/documentation/development/_modules/networkx/algorithms/coloring/greedy_coloring.html
-# https://networkx.github.io/documentation/development/reference/algorithms.coloring.html
-def greedy_color(H, colors, strategy=nx.coloring.strategy_largest_first):
-	G = nx.from_numpy_matrix(H, create_using=nx.Graph())
-
-	if len(G):
-		# set to keep track of colors of neighbours
-		neighbour_colors = set()
-
-		node = G.nodes()[-1] # last node added
-
-		for neighbour in G.neighbors_iter(node):
-			if neighbour in colors:
-				neighbour_colors.add(colors[neighbour])
-
-		for color in itertools.count():
-			if color not in neighbour_colors:
-				break
-
-		# assign the node the newly found color
-		#colors[node] = color
-		return color
-
-	#return colors
-
-def get_wave_availability(k, n):
-	return (int(n) & ( 1 << k )) >> k
 
 def rwa_dij_graph(N, A, T, holding_time, paths):
 	SD = (info.NSF_SOURCE_NODE, info.NSF_DEST_NODE)
