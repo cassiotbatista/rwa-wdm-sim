@@ -76,9 +76,12 @@ class Network:
 		time_mtx = np.zeros(dimension, dtype=np.float64)
 		traffic_mtx = {'time' : time_mtx}
 
+		# the percentage of occupied channels is defined by the bias parameter
+		#   nlinks * nchannels ---> 100 %             # λ total
+		#        ch_occup      ---> chbias * 100 %    # λ not free
 		ch = 0
-		channels = int(self.num_links*self.num_channels*self.channel_init_bias)
-		while ch < channels:
+		ch_occup = int(self.num_links*self.num_channels*self.channel_init_bias)
+		while ch < ch_occup:
 			w = random.randrange(self.num_channels) # random λ 
 			o = random.randrange(self.num_nodes)    # random origin node
 			d = random.randrange(self.num_nodes)    # random destination node
@@ -86,48 +89,46 @@ class Network:
 			# avoid:
 			#  - origin node equal to destination node
 			#  - one-hop paths (in other words, a link)
-			#  - duplicate lightpaths (same route, same wavelength)
-			if o == d \
-					or (o,d) in links or (d,o) in links \
-					or (o,d,w) in traffic_mtx or (d,o,w) in traffic_mtx:
+			if o == d or (o,d) in links or (d,o) in links:
 				continue
 
-			# the 'if's inside the infinite loop are complementary and must:
-			#  - ensure one of the routers on the new link selected is equal 
-			#    to the current router, in order to form a valid path
-			#  - ensure both new routers are not yet in the path, since that 
-			#    would represent a loop
-			#  - ensure the λ within any specific fiber link has not been taken 
+			# the 'if' inside the inf loop must ensure:
+			#  - one of the routers on the new link selected is equal to the
+			#    current router, in order to form a valid path
+			#  - both new routers are not yet in the path, since that would
+			#    represent a loop
+			#  - the λ within any specific fiber link has not been taken
 			#    already, which would violate the distinct wavelength constraint
-			path = []    # a single, random path to be filled
+			route = []   # a single, random path to be filled
 			rcurr = o    # current router (origin, for now)
 			count = 0    # a counter, to avoid a real infinite loop
 			while True:
-				i, j = random.choice(links) 
-				if i == rcurr \
-						and i not in path \
-						and traffic_mtx['time'][i][j][w] == 0.0:
-					path.append(i)
-					if j == d: # if it reaches the destination
-						path.append(j)
-						break # exit infinite loop
-					rcurr = j # the current router is now the next one
 				# remember: links are bidirectional
-				if j == rcurr \
-						and j not in path \
-						and traffic_mtx['time'][j][i][w] == 0.0:
-					path.append(j)
-					if i == d: # if it reaches the destination
-						path.append(i)
-						break # exit infinite loop
-					rcurr = i # the current router is now the next one
-				count += 1
-				if count > 100:
-					break
+				x, y = random.choice(links) 
+				for i, j in [(x,y), (y,x)]:
+					if i == rcurr \
+							and i not in route and j not in route \
+							and traffic_mtx['time'][i][j][w] == 0.0:
+						route.append(i)
+						count -= 2
+						if j == d: # if it reaches the destination
+							route.append(j)
+							break # exit infinite loop
+						rcurr = j # the current router is now the next one
 
-			# timeout. try it again from the beginning
-			if count > 100:
-				continue
+				count += 1
+				if count > 150: # timeout. try it again from the beginning
+					route = []
+					continue
+
+			# avoid duplicate lightpaths (same route, same wavelength)
+			route = tuple(route)
+			for key in [(o,d,w), (d,o,w)]:
+				if key in traffic_mtx:
+					for lightpath in traffic_mtx[key]:
+						if lightpath == route
+							continue 
+					break # keep the 'key' variable
 
 			# now we assign a random holding time for the wavelength λ 
 			# become free again, where holding time = -ln(1-r) 
@@ -138,38 +139,43 @@ class Network:
 
 			holding_time = -np.log(1-r)
 
-			traffic_mtx[key] = (tuple(path), holding_time)
-			for i in xrange(len(path)-1):
-				rcurr = path[i]
-				rnext = path[i+1]
+			# add connection to traffic matrix
+			# to ease localization, also update a time matrix embedded within
+			# the traffic matrix (dict) data structure
+			traffic_mtx[key].update({route:holding_time})
+			for i in xrange(len(route)-1):
+				rcurr = route[i]
+				rnext = route[i+1]
 				traffic_mtx['time'][rcurr][rnext][w] = holding_time
 				traffic_mtx['time'][rnext][rcurr][w] = holding_time # symmetric
+				ch += 1 # update channel counter
 
-			ch += len(path)
+			route = [] # flush path to calculate a new, fresh one
 
 		# wavelength availability 3D matrix: range of the values is [0,1] (int2)
 		#   mtx[V¹][V²][λ] = 1 iff λ is available at the link (V¹,V²)
 		#   mtx[V¹][V²][λ] = 0 iff λ is *NOT* available at the link (V¹,V²)
 		#                   or if E=(V¹,V²) doesn't exist on the physical topol.
-		# first, we'll make everyone available (first for loop)
-		# then, we'll filter according to out traffic matrix and mark some
-		# wavelengths as *NOT* free (second for(each) loop)
-		# <TODO> copy adj_mtx w times </TODO>
+		# first, we'll make everyone available (first nested loop in @l)
+		# then, we'll filter according to the connections on our traffic matrix 
+		# and mark some wavelengths as *NOT* free (second nested loop in @conn)
 		dimension = (self.num_nodes, self.num_nodes, self.num_channels)
 		wave_mtx = np.zeros(dimension, dtype=np.uint8)
-		for l in links:
+		for i, j in links:
 			for w in xrange(self.num_channels):
-				wave_mtx[l[0]][l[1]][w] = 1
-				wave_mtx[l[1]][l[0]][w] = 1 # symmetric
+				wave_mtx[i][j][w] = 1
+				wave_mtx[j][i][w] = 1 # symmetric
 		for conn in traffic_mtx:
-			if isinstance(conn, tuple): # ensure we don't mess with the 3D mtx
-				path = traffic_mtx[conn][0]
-				length = len(path)
-				for i in xrange(length-1):
-					rcurr = path[i]
-					rnext = path[i+1]
-					wave_mtx[rcurr][rnext][w] = 0
-					wave_mtx[rnext][rcurr][w] = 0 # symmetric
+			# ensure we don't mess with the 3D mtx, getting then a (ODλ) tuple
+			# if a connection exists, mark the wavelength as 'occupied'
+			if isinstance(conn, tuple):
+				w = conn[2]
+				for path in traffic_mtx[conn]:
+					for i in xrange(len(path)-1):
+						rcurr = path[i]
+						rnext = path[i+1]
+						wave_mtx[rcurr][rnext][w] = 0
+						wave_mtx[rnext][rcurr][w] = 0 # symmetric
 
 		# finally, init constants
 		self.WAVELENGTH_MATRIX = wave_mtx
@@ -178,7 +184,33 @@ class Network:
 
 	# update all channels that are still being used
 	# TODO: just implement a foreach loop for each element on the traffic matrix
+	# TODO: dict has been refactored. check the function
 	def update_network(self, until_next):
+		# avoid dict size-changed exception - https://stackoverflow.com/q/11941817
+		for conn in self.traffic_mtx.keys():
+			if isinstance(conn, tuple): # ensure we don't mess with the 3D mtx
+				w = conn[2]
+				if self.traffic_mtx[conn][1] > until_next:
+					self.traffic_mtx[conn][1] -= until_next
+					path = self.traffic_mtx[conn][0] # path tuple
+					for i in xrange(len(path)-1):
+						rcurr = path[i]
+						rnext = path[i+1]
+						self.traffic_mtx['time'][rcurr][rnext][w] -= until_next
+						self.traffic_mtx['time'][rnext][rcurr][w] -= until_next
+				else:
+					path, _ = self.traffic_mtx.pop(conn) # remove connection
+					for i in xrange(len(path)-1):
+						rcurr = path[i]
+						rnext = path[i+1]
+						# the time until the next call is now 0, since the
+						# connection that was holding it is gone
+						self.traffic_mtx['time'][rcurr][rnext][w] = 0.0
+						self.traffic_mtx['time'][rnext][rcurr][w] = 0.0
+						# do not forget to free the respective λ as well
+						self.wave_mtx[rcurr][rnext][w] = 1
+						self.wave_mtx[rnext][rcurr][w] = 1
+
 		links_freed = {idx:[] for idx in xrange(self.num_channels)}
 		for link in self.get_edges():
 			i, j = link
