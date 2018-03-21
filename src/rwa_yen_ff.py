@@ -10,7 +10,7 @@
 # Cassio Trindade Batista - cassio.batista.13@gmail.com
 # Federal University of Pará (UFPA). Belém, Brazil.
 #
-# Last revised on Apr 2017
+# Last revised on Apr 2018
 #
 # REFERENCES:
 # [1] 
@@ -30,23 +30,6 @@ def rwa_yen_ff(N, A, T, holding_time):
 
 	# alternate k shortest paths
 	routes = yen(A, SD, info.K)
-
-	## GLOBAL KNOWLEDGE first fit wavelength assignment
-	#color = None
-	#for R in routes:
-	#	avail = 2**info.NSF_NUM_CHANNELS-1
-	#	for r in xrange(len(R)-1):
-	#		rcurr = R[r]
-	#		rnext = R[r+1]
-
-	#		avail &= N[rcurr][rnext]
-
-	#		if avail == 0:
-	#			break
-
-	#	if avail > 0:
-	#		color = format(avail, '0%db' % info.NSF_NUM_CHANNELS)[::-1].index('1')
-	#		break
 
 	for R in routes:
 

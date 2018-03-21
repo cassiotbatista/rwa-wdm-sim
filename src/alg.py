@@ -11,19 +11,21 @@
 # Cassio Trindade Batista - cassio.batista.13@gmail.com
 # Federal University of Pará (UFPA). Belém, Brazil.
 #
-# Last edited on Feb 2018
+# Last edited on March 2018
 #
 # References:
 # - random 'biased' choice: https://stackoverflow.com/q/25507558
 # - import from parent dir: https://stackoverflow.com/a/30536516
 # - multiple inheritance:   https://stackoverflow.com/q/3277367
 
-class Routing:
+class Routing(object):
 	#FIXME do I need (object) or super() here?
 	def __init__(self):
 		pass
 
-	# https://networkx.github.io/documentation/networkx-1.10/reference/algorithms.shortest_paths.html
+	# https://networkx.github.io/documentation/networkx-1.10/...
+	# ... reference/algorithms.shortest_paths.html
+	# FIXME
 	def dijkstra(self, adj_mtx, s, d):
 		""" Certainly does something """
 		if any([s,d])<0 or any([s,d])>adj_mtx.shape[0] or s == d:
@@ -33,7 +35,9 @@ class Routing:
 		hops, path = nx.bidirectional_dijkstra(G, s, d, weight=None)
 		return path
 
-	# https://networkx.github.io/documentation/networkx-1.10/reference/algorithms.simple_paths.html
+	# https://networkx.github.io/documentation/networkx-1.10/...
+	# ... reference/algorithms.simple_paths.html
+	# FIXME
 	def yen(self, mat, (s,d), k):
 		if any([s,d])<0 or any([s,d])>mat.shape[0] or k<0:
 			print 'Error'
@@ -42,12 +46,13 @@ class Routing:
 		paths = list(nx.shortest_simple_paths(G, s, d, weight=None))
 		return paths[:k]
 
-class WavelengthAssignment:
+class WavelengthAssignment(object):
 	#FIXME do I need (object) or super() here?
 	def __init__(self):
 		pass
 
 	# local knowledge first fit wavelength assignment
+	# FIXME
 	def first_fit(self, N, R, num_channels):
 		""" Certainly does something """
 		rcurr, rnext = R[0], R[1] # look at the source node only (1st link)
@@ -61,7 +66,9 @@ class WavelengthAssignment:
 
 		return None # block
 
-	# https://networkx.github.io/documentation/development/reference/algorithms.coloring.html
+	# https://networkx.github.io/documentation/development/...
+	# ... reference/algorithms.coloring.html
+	# FIXME
 	def greedy_color(self, H, colors, strategy=nx.coloring.strategy_largest_first):
 		G = nx.from_numpy_matrix(H, create_using=nx.Graph())
 	
@@ -82,7 +89,7 @@ class WavelengthAssignment:
 			# assign the node the newly found color
 			#colors[node] = color
 			return color
-	
+
 		#return colors
 
 
@@ -90,7 +97,8 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 	""" This class certainly does something """
 	def __init__(self):
 		super(RWAAlgorithm).__init__(self)
-		pass
+		self.block_count = 0  # to store the number of blocked calls
+		self.block_list  = [] # store percentage of blocked calls per generation
 
 	def routing(self):
 		""" This method will be overriden """
@@ -100,9 +108,26 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 		""" This method will be overriden """
 		pass
 
+	# FIXME
 	def check_global_availability(self):
-		pass
+		# GLOBAL KNOWLEDGE first fit wavelength assignment
+		color = None
+		for R in routes:
+			avail = 2**info.NSF_NUM_CHANNELS-1
+			for r in xrange(len(R)-1):
+				rcurr = R[r]
+				rnext = R[r+1]
 
+				avail &= N[rcurr][rnext]
+
+				if avail == 0:
+					break
+
+			if avail > 0:
+				color = format(avail, '0%db' % info.NSF_NUM_CHANNELS)[::-1].index('1')
+				break
+
+	# FIXME
 	def check_local_availability(self, wave_mtx, route, wavelength):
 		""" local knowledge wavelength assignment """
 		# check if the λ chosen at the first link is availble on all links of R

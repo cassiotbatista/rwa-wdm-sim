@@ -20,7 +20,7 @@
 import random
 import numpy as np
 
-class Network:
+class Network(object):
 	""" Network: A superclass that does something """
 	WAVELENGTH_MATRIX = None   # N (3D numpy array/matrix)
 	ADJACENCY_MATRIX  = None   # A (2D numpy array/matrix)
@@ -36,10 +36,6 @@ class Network:
 		self.wave_mtx     = None  # N copy
 		self.adj_mtx      = None  # A copy
 		self.traffic_mtx  = None  # T copy
-
-		self.block_count = 0  # to store the number of blocked calls
-		self.block_list  = [] # store percentage of blocked calls per generation
-		self.connections = [] # store all the running lightpaths
 
 	def get_edges(self):
 		""" This method will be overriden """
@@ -182,51 +178,42 @@ class Network:
 		self.ADJACENCY_MATRIX  = adj_mtx
 		self.TRAFFIC_MATRIX    = traffic_mtx
 
+	def reset_network(self):
+		self.wave_mtx    = self.WAVELENGTH_MATRIX.copy() # matrix
+		self.adj_mtx     = self.ADJACENCY_MATRIX.copy()  # matrix
+		self.traffic_mtx = self.TRAFFIC_MATRIX.copy()    # dict
+
 	# update all channels that are still being used
-	# TODO: just implement a foreach loop for each element on the traffic matrix
-	# TODO: dict has been refactored. check the function
+	# dict size-changed RuntimeError exc. - https://stackoverflow.com/q/11941817
 	def update_network(self, until_next):
-		# avoid dict size-changed exception - https://stackoverflow.com/q/11941817
-		for conn in self.traffic_mtx.keys():
-			if isinstance(conn, tuple): # ensure we don't mess with the 3D mtx
-				w = conn[2]
-				if self.traffic_mtx[conn][1] > until_next:
-					self.traffic_mtx[conn][1] -= until_next
-					path = self.traffic_mtx[conn][0] # path tuple
+		""" A method that does something """
+		for key in self.traffic_mtx.keys(): # we hope @key = (ODλ)
+			if not isinstance(key, tuple): # ensure we don't mess with the 3D mtx
+				continue
+			w = key[2] # extract λ in question
+			for path in self.traffic_mtx[key].keys():
+				if self.traffic_mtx[key][path] > until_next:
+					# update both dict value and time matrix values
+					self.traffic_mtx[key][path] -= until_next
 					for i in xrange(len(path)-1):
 						rcurr = path[i]
 						rnext = path[i+1]
 						self.traffic_mtx['time'][rcurr][rnext][w] -= until_next
 						self.traffic_mtx['time'][rnext][rcurr][w] -= until_next
 				else:
-					path, _ = self.traffic_mtx.pop(conn) # remove connection
+					# remove lightpath from traffic matrix (pop) and update both
+					# time and wavelength availability matrices
+					self.traffic_mtx[key].pop(path)
 					for i in xrange(len(path)-1):
 						rcurr = path[i]
 						rnext = path[i+1]
 						# the time until the next call is now 0, since the
-						# connection that was holding it is gone
+						# connection that was withholding λ it is gone
 						self.traffic_mtx['time'][rcurr][rnext][w] = 0.0
 						self.traffic_mtx['time'][rnext][rcurr][w] = 0.0
 						# do not forget to free the respective λ as well
 						self.wave_mtx[rcurr][rnext][w] = 1
 						self.wave_mtx[rnext][rcurr][w] = 1
-
-		links_freed = {idx:[] for idx in xrange(self.num_channels)}
-		for link in self.get_edges():
-			i, j = link
-			for w in xrange(self.num_channels):
-				if self.time_mtx[i][j][w] > until_next:
-					self.time_mtx[i][j][w] -= until_next # decrement time
-					self.time_mtx[j][i][w]  = self.time_mtx[i][j][w] # symmetric
-				else:
-					self.time_mtx[i][j][w] = 0.0
-					self.time_mtx[j][i][w] = self.time_mtx[i][j][w] # symmetric
-					if not self.wave_mtx[i][j][w]:
-						self.wave_mtx[i][j][w] = 1 # free channel (available again)
-						self.wave_mtx[j][i][w] = self.wave_mtx[i][j] # symmetric
-						links_freed[w].append((i,j))
-						links_freed[w].append((j,i))
-						#aux_yen_ff[w].append((i,j)) # FIXME
 
 	def plot_topology(self, bestroute=False, PT_BR=False):
 		""" A function to plot """
