@@ -22,22 +22,27 @@ import sys
 sys.path.insert(0, 'net')
 sys.path.insert(0, 'src')
 
-import info
-import nsf
+import os
 
+import random
 import numpy as np
 
-from rwa_ga import rwa_ga
+import info import *
 
-from rwa_dij_gc import rwa_dij_gc
-from rwa_yen_gc import rwa_yen_gc
+from arpa import AdvancedResearchProjectsAgency
+from clara import CooperacionLatinoAmericana
+from ita import Italian
+from nsf import NationalScienceFoundation
+from rnp import RedeNacionalPesquisa
 
-from rwa_yen_ff import rwa_yen_ff
-from rwa_dij_ff import rwa_dij_ff
+def poisson_arrival():
+	r = np.random.uniform() # half-open interval [low=0.0, high=1.0)
+	while r == 0.0 or r == 1.0: # I better be sure, right?
+		r = np.random.uniform()
+	return -np.log(1-r)
 
-if __name__ == '__main__':
-
-	# init all nets
+# init all nets
+def init_nets():
 	nets = []
 	nets.append(AdvancedResearchProjectsAgency()) # 0 ARPA
 	nets.append(CooperacionLatinoAmericana())     # 1 CLARA
@@ -46,9 +51,10 @@ if __name__ == '__main__':
 	nets.append(NationalScienceFoundation())      # 5 NSF
 	nets.append(RedeNacionalPesquisa())           # 6 RNP
 
-	for n in nets:
-		n.init_network()
+	return nets
 
+# init all algs
+def init_algs():
 	algs = []
 	algs.append(DijkstraFirstFit())         # 0 DFF
 	algs.append(DijkstraGraphColoring())    # 1 GGC
@@ -57,65 +63,53 @@ if __name__ == '__main__':
 	algs.append(GeneticAlgorithm())         # 4 GA
 	algs.append(GeneralObjectiveFunction()) # 5 GOF (alone)
 
-	if info.DEBUG:
-		print nsf_wave
+	return algs
+
+def main():
+
+	nets = init_nets()
+	algs = init_algs()
+
+	for n in nets:
+		n.init_network()
+		for a in algs:
+			a.block_dict[n.name] = {}
 
 	for load in xrange(info.SIM_MIN_LOAD, info.SIM_MAX_LOAD):
 		for n in nets:
 			n.reset_network()
 
-		for call in xrange(info.SIM_NUM_GEN):
-			r = np.random.uniform() # half-open interval [low=0.0, high=1.0)
-			while r == 0.0 or r == 1.0: # I better be sure, right?
-				r = np.random.uniform()
-			until_next = -np.log(1-r)/load # define interarrival times
-
-			r = np.random.uniform() # half-open interval [low=0.0, high=1.0)
-			while r == 0.0 or r == 1.0: # I better be sure, right?
-				r = np.random.uniform()
-			holding_time = -np.log(1-r) # define a time for a λ to be released
+		for call in xrange(info.SIM_NUM_CALLS):
+			holding_time = poisson_arrival() # define a time for a λ to be released
+			until_next   = poisson_arrival()/load # define interarrival times
 
 			for n in nets:
 				for a in algs:
 					a.block_count += a.rwa(n, holding_time, until_next)
 
-			if info.DEBUG:
+			if info.DEGUB:
 				sys.stdout.write('\r')
 				sys.stdout.write('Load: %2d/%2d '   % (load, info.SIM_MAX_LOAD-1))
-				sys.stdout.write('Simul: %4d/%4d\t' % (call+1, info.SIM_NUM_GEN))
+				sys.stdout.write('Simul: %4d/%4d\t' % (call+1, info.SIM_NUM_CALLS))
 				for a in algs:
-					sys.stdout.write('%3s:  %4d, '    % (a.name, a.block_count))
+					sys.stdout.write('%3s:  %4d, '  % (a.name, a.block_count))
 				sys.stdout.flush()
 
-		blocked_ga.append( 100.0*count_block_ga /info.SIM_NUM_GEN)
-		blocked_dij_gc.append(100.0*count_block_dij_gc/info.SIM_NUM_GEN)
-		blocked_yen_gc.append(100.0*count_block_yen_gc/info.SIM_NUM_GEN)
-		blocked_yen_ff.append(100.0*count_block_yen_ff/info.SIM_NUM_GEN)
-		blocked_dij_ff.append(100.0*count_block_dij_ff/info.SIM_NUM_GEN)
+		for a in algs:
+			a.block_list.append(100.0*a.block_count/info.SIM_NUM_CALLS)
 		print 'Done'
 
-	if info.DEBUG:
+	if info.DEGUB:
 		for a in algs:
 			print '\t %3s %s' % (a.name, a.block_list)
-	
-	with open('block_GA_%d.m' % info.NSF_NUM_CHANNELS, 'a') as f:
-		text = str(blocked_ga).replace('[','').replace(']','')
-		f.write('%s; ...\n' % text)
-	
-	with open('block_DIJ_gc_%d.m' % info.NSF_NUM_CHANNELS, 'a') as f:
-		text = str(blocked_dij_gc).replace('[','').replace(']','')
-		f.write('%s; ...\n' % text)
-	
-	with open('block_YEN_gc_%d.m' % info.NSF_NUM_CHANNELS, 'a') as f:
-		text = str(blocked_yen_gc).replace('[','').replace(']','')
-		f.write('%s; ...\n' % text)
-	
-	with open('block_YEN_FF_%d.m' % info.NSF_NUM_CHANNELS, 'a') as f:
-		text = str(blocked_yen_ff).replace('[','').replace(']','')
-		f.write('%s; ...\n' % text)
-	
-	with open('block_DIJ_FF_%d.m' % info.NSF_NUM_CHANNELS, 'a') as f:
-		text = str(blocked_dij_ff).replace('[','').replace(']','')
-		f.write('%s; ...\n' % text)
+
+	for a in algs:
+		a.save_blocks_to_file()
+		with open('block_%s_%d.txt' % (a.name,info.NSF_NUM_CHANNELS)) as f:
+			text = re.sub(r'[\[\]]', '', str(a.block_list)))
+			f.write('%s; ...\n' % text)
+
+if __name__ == '__main__':
+	main()
 
 ### EOF ###
