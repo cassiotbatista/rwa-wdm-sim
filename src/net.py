@@ -18,6 +18,7 @@ import numpy as np
 
 class Network(object):
 	""" Network: A superclass that does something """
+	# T's inspiration: http://fnss.github.io/doc/core/apidoc/fnss.classes.html
 	__wavelength_matrix = None   # W (3D numpy array/matrix)
 	__adjacency_matrix  = None   # A (2D numpy array/matrix)
 	__traffic_matrix    = None   # T (dict)

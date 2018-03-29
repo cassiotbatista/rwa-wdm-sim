@@ -19,21 +19,18 @@
 # Assignment (RWA) in Optical Networks
 
 import sys
-sys.path.insert(0, 'net')
 sys.path.insert(0, 'src')
 
 import os
-
 import random
 import numpy as np
 
-import info import *
+# pretty-print a np array - https://stackoverflow.com/q/2891790
+np.set_printoptions(precison=2)
 
-from arpa import AdvancedResearchProjectsAgency
-from clara import CooperacionLatinoAmericana
-from ita import Italian
-from nsf import NationalScienceFoundation
-from rnp import RedeNacionalPesquisa
+from info import *
+from net import *
+from alg import *
 
 def poisson_arrival():
 	r = np.random.uniform() # half-open interval [low=0.0, high=1.0)
@@ -44,70 +41,100 @@ def poisson_arrival():
 # init all nets
 def init_nets():
 	nets = []
-	nets.append(AdvancedResearchProjectsAgency()) # 0 ARPA
-	nets.append(CooperacionLatinoAmericana())     # 1 CLARA
-	nets.append(Italian())                        # 3 ITALIAN
-	nets.append(JointAcademic())                  # 4 JANET
-	nets.append(NationalScienceFoundation())      # 5 NSF
-	nets.append(RedeNacionalPesquisa())           # 6 RNP
+	if NET_ARPA:
+		nets.append(AdvancedResearchProjectsAgency()) # 0 ARPA
+	if NET_CLARA:
+		nets.append(CooperacionLatinoAmericana())     # 1 CLARA
+	if NET_ITA:
+		nets.append(Italian())                        # 3 ITALIAN
+	if NET_JANET:
+		nets.append(JointAcademic())                  # 4 JANET
+	if NET_NSF:
+		nets.append(NationalScienceFoundation())      # 5 NSF
+	if NET_RNP:
+		nets.append(RedeNacionalPesquisa())           # 6 RNP
 
 	return nets
 
 # init all algs
 def init_algs():
 	algs = []
-	algs.append(DijkstraFirstFit())         # 0 DFF
-	algs.append(DijkstraGraphColoring())    # 1 GGC
-	algs.append(YenFirstFit())              # 2 YFF
-	algs.append(YenGraphColoring())         # 3 YGC
-	algs.append(GeneticAlgorithm())         # 4 GA
-	algs.append(GeneralObjectiveFunction()) # 5 GOF (alone)
+	if ALG_DFF:
+		algs.append(DijkstraFirstFit())         # 0 DFF
+	if ALG_DGC:
+		algs.append(DijkstraGraphColoring())    # 1 GGC
+	if ALG_YFF:
+		algs.append(YenFirstFit())              # 2 YFF
+	if ALG_YGC:
+		algs.append(YenGraphColoring())         # 3 YGC
+	if ALG_GA:
+		algs.append(GeneticAlgorithm())         # 4 GA
+	if ALG_GOF:
+		algs.append(GeneralObjectiveFunction()) # 5 GOF (alone)
 
 	return algs
 
 def main():
-
 	nets = init_nets()
 	algs = init_algs()
+
+	if nets == [] or algs == []:
+		sys.stderr.write('Something must be wrong. ')
+		sys.stderr.write('You didn\'t start any network [n]or algorithm.\n')
+		sys.stderr.write('Take a look at NET_* or ALG_* consts in \'info.py\'.')
+		sys.exit(1)
 
 	for n in nets:
 		n.init_network()
 		for a in algs:
-			a.block_dict[n.name] = {}
+			a.block_dict[n.name] = numpy.empty(0)
 
-	for load in xrange(info.SIM_MIN_LOAD, info.SIM_MAX_LOAD):
+	# define the load in Erlangs
+	for load in xrange(SIM_MIN_LOAD, SIM_MAX_LOAD):
+		# reset all networks to the inital state
 		for n in nets:
 			n.reset_network()
 
-		for call in xrange(info.SIM_NUM_CALLS):
+		# call requests arrival
+		for call in xrange(SIM_NUM_CALLS):
+			# exponential times definitions
 			holding_time = poisson_arrival() # define a time for a λ to be released
 			until_next   = poisson_arrival()/load # define interarrival times
 
+			# FIXME apply RWA
 			for n in nets:
 				for a in algs:
 					a.block_count += a.rwa(n, holding_time, until_next)
 
-			if info.DEGUB:
-				sys.stdout.write('\r')
-				sys.stdout.write('Load: %2d/%2d '   % (load, info.SIM_MAX_LOAD-1))
-				sys.stdout.write('Simul: %4d/%4d\t' % (call+1, info.SIM_NUM_CALLS))
+			if DEGUB:
+				sys.stdout.write('\rLoad: %2d/%2d Simul: %4d/%4d\t' % (load,
+  							SIM_MAX_LOAD-1, call+1, SIM_NUM_CALLS))
 				for a in algs:
-					sys.stdout.write('%3s:  %4d, '  % (a.name, a.block_count))
+					sys.stdout.write('%6s:  %5d, '  % (a.name, a.block_count))
 				sys.stdout.flush()
 
-		for a in algs:
-			a.block_list.append(100.0*a.block_count/info.SIM_NUM_CALLS)
+			# update networks
+			for n in nets:
+				n.update_network()
+		# exits Poisson for (call) loop
+
+		# save % BP per load (partial BP per erlang. max=100%)
+		for n in nets:
+			for a in algs:
+				a.save_erlang_blocks(n.name, SIM_NUM_CALLS)
 		print 'Done'
+	# exits Erlang for (load) loop
 
-	if info.DEGUB:
+	# FIXME
+	if DEGUB:
+		for n in nets:
+			for a in algs:
+				print '\t%6s %s' % (a.name, a.block_dict)
+
+	# save BPs to file
+	for n in nets:
 		for a in algs:
-			print '\t %3s %s' % (a.name, a.block_list)
-
-	for a in algs:
-		a.save_blocks_to_file()
-		with open('block_%s_%d.txt' % (a.name,info.NSF_NUM_CHANNELS)) as f:
-			text = re.sub(r'[\[\]]', '', str(a.block_list)))
-			f.write('%s; ...\n' % text)
+			a.save_blocks_to_file(RESULT_DIR, n.name, NET_NUM_CHANNELS)
 
 if __name__ == '__main__':
 	main()

@@ -21,7 +21,8 @@ problem with the following algorithms:
 
 ## Citation
 
-If you use this code or want to mention the paper referred above, please cite: 
+If you use this code or want to mention the paper referred above, please cite us
+as one of the following: 
 
 >Teixeira D.B.A., Batista C.T., Cardoso A.J.F., de S. Araújo J. (2017) A Genetic Algorithm Approach for Static Routing and Wavelength Assignment in All-Optical WDM Networks. In: Oliveira E., Gama J., Vale Z., Lopes Cardoso H. (eds) Progress in Artificial Intelligence. EPIA 2017. Lecture Notes in Computer Science, vol 10423. Springer, Cham
 

@@ -24,7 +24,7 @@ import os
 import numpy as np
 import info
 import networkx as nx
-import itertools # TODO ??
+import itertools
 
 #FIXME
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -38,8 +38,9 @@ class Routing(object):
 	# FIXME
 	def dijkstra(self, adj_mtx, s, d):
 		""" Certainly does something """
-		if any([s,d])<0 or any([s,d])>adj_mtx.shape[0] or s == d:
-			print 'Error: source (%d) or destination (%d) indexes are invalid' % (s,d)
+		if s < 0 or d < 0 or s > adj_mtx.shape[0] or d > adj_mtx.shape[0] or s == d:
+			sys.stderr.write('Error: source (%d) or destination (%d) ' % (s,d))
+			sys.stderr.write('indexes are invalid.\n')
 			return None
 		G = nx.from_numpy_matrix(adj_mtx, create_using=nx.Graph())
 		hops, path = nx.bidirectional_dijkstra(G, s, d, weight=None)
@@ -49,8 +50,10 @@ class Routing(object):
 	# ... reference/algorithms.simple_paths.html
 	# FIXME
 	def yen(self, mat, (s,d), k):
-		if any([s,d])<0 or any([s,d])>mat.shape[0] or k<0:
-			print 'Error'
+		if s < 0 or d < 0 or s > adj_mtx.shape[0] or d > adj_mtx.shape[0] or k < 0:
+			sys.stderr.write('Error: source (%d) or destination (%d) ' % (s,d))
+			sys.stderr.write('indexes might be invalid.\n')
+			sys.stderr.write('Check the k value (%d) as well.\n' % k)
 			return None
 		G = nx.from_numpy_matrix(mat, create_using=nx.Graph())
 		paths = list(nx.shortest_simple_paths(G, s, d, weight=None))
@@ -87,7 +90,6 @@ class WavelengthAssignment(object):
 			for neighbour in G.neighbors_iter(node):
 				if neighbour in colors:
 					neighbour_colors.add(colors[neighbour])
-	
 			for color in itertools.count():
 				if color not in neighbour_colors:
 					break
@@ -95,6 +97,15 @@ class WavelengthAssignment(object):
 			#colors[node] = color
 			return color
 		#return colors
+
+	def random_fit(self):
+		pass
+
+	def most_used(self):
+		pass
+
+	def least_used(self):
+		pass
 
 class RWAAlgorithm(Routing, WavelengthAssignment):
 	""" This class certainly does something """
@@ -112,8 +123,8 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 		pass
 
 	# FIXME
+	# GLOBAL KNOWLEDGE first fit wavelength assignment
 	def check_global_availability(self):
-		# GLOBAL KNOWLEDGE first fit wavelength assignment
 		color = None
 		for R in routes:
 			avail = 2**info.NSF_NUM_CHANNELS-1
@@ -145,8 +156,19 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 
 		return wavelength
 
-	def save_blocks_to_file(self,):
-		filename = '' % (self.name)
+	# https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.append.html
+	def save_erlang_blocks(self, net_key, total_calls):
+		bp = 100.0 * self.block_count / total_calls # blocking probab. per erlang
+		self.block_dict[net_key] = np.append(self.block_dict[net_key], bp)
+
+	# https://docs.scipy.org/doc/numpy-1.14.0/reference/generated/numpy.savetxt.html
+	# numpy append to file w/ savetxt() - https://stackoverflow.com/q/27786868
+	def save_blocks_to_file(self, result_dir, net_name, ch_n):
+		# e.g.: DFF_ARPA_8ch.txt
+		blockfilename = '%s_%s_%dch.txt' % (self.name, net_name, ch_n)
+		with open(blockfilename, 'a') as blockfile:
+			np.savetxt(os.path.join(result_dir, blockfile),
+					self.block_dict[net_name], fmt='%6.2f', delimiter=',')
 
 	def plot_fits(self, fits, PT_BR=False):
 		""" This method plots """

@@ -5,3 +5,4 @@ all:
 
 clean:
 	rm -f *.pyc
+	(cd src && rm *.pyc)
