@@ -32,12 +32,6 @@ from info import *
 from net import *
 from alg import *
 
-def poisson_arrival():
-	r = np.random.uniform() # half-open interval [low=0.0, high=1.0)
-	while r == 0.0 or r == 1.0: # I better be sure, right?
-		r = np.random.uniform()
-	return -np.log(1-r)
-
 # init all nets
 def init_nets():
 	nets = []
@@ -74,6 +68,26 @@ def init_algs():
 
 	return algs
 
+def poisson_arrival():
+	r = np.random.uniform() # half-open interval [low=0.0, high=1.0)
+	while r == 0.0 or r == 1.0: # I better be sure, right?
+		r = np.random.uniform()
+	return -np.log(1-r)
+
+def get_od_pair(net)
+	if not net.allow_multi_od:
+		return net.source_node, net.dest_node
+
+	# randomly choose origin and destination nodes
+	origin      = random.randrange(net.num_nodes) 
+	destination = random.randrange(net.num_nodes)
+
+	# avoid origin node being the same as destination
+	while origin == destination:
+		destination = random.randrange(net.num_nodes) 
+
+	return origin, destination
+
 def main():
 	nets = init_nets()
 	algs = init_algs()
@@ -82,12 +96,18 @@ def main():
 		sys.stderr.write('Something must be wrong. ')
 		sys.stderr.write('You didn\'t start any network [n]or algorithm.\n')
 		sys.stderr.write('Take a look at NET_* or ALG_* consts in \'info.py\'.')
+		sys.stderr.flush()
 		sys.exit(1)
 
+	# init the block array for each topology, considerind each and every node of
+	# the topology as an eventual origin node
 	for n in nets:
 		n.init_network()
 		for a in algs:
-			a.block_dict[n.name] = numpy.empty(0)
+			a.block_dict[n.name] = {}
+			for node in range(n.num_nodes):              # e.g.: cur node = 2
+				a.block_count.append(0)                  # list[2]        = 0
+				a.block_dict[n.name][node] = np.empty(0) # dict['nsf'][2] = 0.0
 
 	# define the load in Erlangs
 	for load in xrange(SIM_MIN_LOAD, SIM_MAX_LOAD):
@@ -97,18 +117,19 @@ def main():
 
 		# call requests arrival
 		for call in xrange(SIM_NUM_CALLS):
-			# exponential times definitions
+			# exponential time distributions
 			holding_time = poisson_arrival() # define a time for a λ to be released
 			until_next   = poisson_arrival()/load # define interarrival times
 
 			# FIXME apply RWA
 			for n in nets:
+				o, d = get_od_pair(n)
 				for a in algs:
-					a.block_count += a.rwa(n, holding_time, until_next)
+					a.block_count[o] += a.rwa(n, o, k, holding_time, until_next)
 
 			if DEGUB:
 				sys.stdout.write('\rLoad: %2d/%2d Simul: %4d/%4d\t' % (load,
-  							SIM_MAX_LOAD-1, call+1, SIM_NUM_CALLS))
+						SIM_MAX_LOAD-1, call+1, SIM_NUM_CALLS))
 				for a in algs:
 					sys.stdout.write('%6s:  %5d, '  % (a.name, a.block_count))
 				sys.stdout.flush()
@@ -121,7 +142,7 @@ def main():
 		# save % BP per load (partial BP per erlang. max=100%)
 		for n in nets:
 			for a in algs:
-				a.save_erlang_blocks(n.name, SIM_NUM_CALLS)
+				a.save_erlang_blocks(n.name, n.num_nodes, SIM_NUM_CALLS)
 		print 'Done'
 	# exits Erlang for (load) loop
 
@@ -134,7 +155,7 @@ def main():
 	# save BPs to file
 	for n in nets:
 		for a in algs:
-			a.save_blocks_to_file(RESULT_DIR, n.name, NET_NUM_CHANNELS)
+			a.save_blocks_to_file(RESULT_DIR, n.name, n.num_nodes, NET_NUM_CHANNELS)
 
 if __name__ == '__main__':
 	main()

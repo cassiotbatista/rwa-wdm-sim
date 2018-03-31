@@ -30,32 +30,47 @@ import itertools
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 class Routing(object):
+	""" Class Routing """
 	def __init__(self):
 		pass
+
+	def is_od_pair_ok(self, adj_mtx, orig, dest):
+		if orig < 0 or dest < 0:
+			return False
+		elif orig > adj_mtx.shape[0] or dest > adj_mtx.shape[0]:
+			return False
+		elif orig == dest:
+			return False
+		else:
+			return True
 
 	# https://networkx.github.io/documentation/networkx-1.10/...
 	# ... reference/algorithms.shortest_paths.html
 	# FIXME
-	def dijkstra(self, adj_mtx, s, d):
+	def dijkstra(self, A, o, d):
 		""" Certainly does something """
-		if s < 0 or d < 0 or s > adj_mtx.shape[0] or d > adj_mtx.shape[0] or s == d:
-			sys.stderr.write('Error: source (%d) or destination (%d) ' % (s,d))
+		if not self.is_od_pair_ok(A, o, d):
+			sys.stderr.write('Error: source (%d) or destination (%d) ' % (o,d))
 			sys.stderr.write('indexes are invalid.\n')
+			sys.stderr.flush()
 			return None
-		G = nx.from_numpy_matrix(adj_mtx, create_using=nx.Graph())
-		hops, path = nx.bidirectional_dijkstra(G, s, d, weight=None)
+
+		G = nx.from_numpy_matrix(A, create_using=nx.Graph())
+		hops, path = nx.bidirectional_dijkstra(G, o, d, weight=None)
 		return path
 
 	# https://networkx.github.io/documentation/networkx-1.10/...
 	# ... reference/algorithms.simple_paths.html
 	# FIXME
-	def yen(self, mat, (s,d), k):
-		if s < 0 or d < 0 or s > adj_mtx.shape[0] or d > adj_mtx.shape[0] or k < 0:
+	def yen(self, A, o, d, k):
+		if not self.is_od_pair_ok(A, o, d) or k < 0:
 			sys.stderr.write('Error: source (%d) or destination (%d) ' % (s,d))
 			sys.stderr.write('indexes might be invalid.\n')
 			sys.stderr.write('Check the k value (%d) as well.\n' % k)
+			sys.stderr.flush()
 			return None
-		G = nx.from_numpy_matrix(mat, create_using=nx.Graph())
+
+		G = nx.from_numpy_matrix(A, create_using=nx.Graph())
 		paths = list(nx.shortest_simple_paths(G, s, d, weight=None))
 		return paths[:k]
 
@@ -98,7 +113,7 @@ class WavelengthAssignment(object):
 			return color
 		#return colors
 
-	def random_fit(self):
+	def random(self):
 		pass
 
 	def most_used(self):
@@ -111,7 +126,7 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 	""" This class certainly does something """
 	def __init__(self):
 		super(RWAAlgorithm, self).__init__()
-		self.block_count = 0  # to store the number of blocked calls
+		self.block_count = [] # to store the number of blocked calls
 		self.block_dict  = {} # store percentage of blocked calls per generation
 
 	def routing(self):
@@ -157,18 +172,23 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 		return wavelength
 
 	# https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.append.html
-	def save_erlang_blocks(self, net_key, total_calls):
-		bp = 100.0 * self.block_count / total_calls # blocking probab. per erlang
-		self.block_dict[net_key] = np.append(self.block_dict[net_key], bp)
+	def save_erlang_blocks(self, net_key, net_num_nodes, total_calls):
+		for node in xrange(net_num_nodes):
+			# compute a percentage of blocking probability per Erlang
+			block_prob_per_erlang = 100.0 * self.block_count[node] / total_calls 
+			self.block_dict[net_key][node] = np.append(
+					self.block_dict[net_key][node], block_prob_per_erlang)
 
 	# https://docs.scipy.org/doc/numpy-1.14.0/reference/generated/numpy.savetxt.html
-	# numpy append to file w/ savetxt() - https://stackoverflow.com/q/27786868
-	def save_blocks_to_file(self, result_dir, net_name, ch_n):
+	# numpy append to file with savetxt() - https://stackoverflow.com/q/27786868
+	def save_blocks_to_file(self, basedir, net_name, net_num_nodes, ch_n):
 		# e.g.: DFF_ARPA_8ch.txt
 		blockfilename = '%s_%s_%dch.txt' % (self.name, net_name, ch_n)
 		with open(blockfilename, 'a') as blockfile:
-			np.savetxt(os.path.join(result_dir, blockfile),
-					self.block_dict[net_name], fmt='%6.2f', delimiter=',')
+			for node in xrange(net_num_nodes):
+				np.savetxt(os.path.join(basedir, blockfile),
+						self.block_dict[net_name][node], fmt='%6.2f', comments='',
+						delimiter=',', header='<block>', footer='</block>\n')
 
 	def plot_fits(self, fits, PT_BR=False):
 		""" This method plots """
@@ -282,10 +302,14 @@ class DijkstraFirstFit(RWAAlgorithm):
 
 # FIXME FIXME FIXME
 class DijkstraGraphColoring(RWAAlgorithm):
-	def rwa_dij_graph(N, A, T, holding_time, paths):
-		SD = (info.NSF_SOURCE_NODE, info.NSF_DEST_NODE)
-		R = dijkstra(A,SD)
-		paths.append([R, None])
+	""" Dijkstra + Graph Coloring """
+	def __init__(self):
+		super(DijkstraGraphColoring).__init__(self)
+
+	def rwa(net, orig, dest, holding_time, until_next):
+		route = self.dijkstra(net.adj_mtx, orig, dest)
+
+		paths.append([R, None]) # FIXME
 	
 		H = np.zeros((len(paths), len(paths)), dtype=np.int)
 		if len(paths) > 1:
@@ -338,11 +362,13 @@ class DijkstraGraphColoring(RWAAlgorithm):
 			return 1 # blocked
 
 # FIXME FIXME FIXME
-class YenFirstFit(N, A, T, holding_time):
-	SD = (info.NSF_SOURCE_NODE, info.NSF_DEST_NODE)
+class YenFirstFit(RWAAlgorithm):
+	def __init__(self, k): # TODO: pass k as arg
+		super(YenFirstFit).__init__(self)
+		self.k = k
 
-	# alternate k shortest paths
-	routes = yen(A, SD, info.K)
+	def rwa(self, net, orig, dest, holding_time, until_next):
+		routes = yen(net.adj_mtx, orig, dest, self.k)
 
 	for R in routes:
 
@@ -386,34 +412,62 @@ class YenFirstFit(N, A, T, holding_time):
 	return 1 # blocked
 
 # FIXME FIXME FIXME
-class YenGraphColoring(N, A, T, holding_time, paths):
-	SD = (info.NSF_SOURCE_NODE, info.NSF_DEST_NODE)
+class YenGraphColoring(RWAAlgorithm):
+	def __init__(self, k): # TODO pass k as arg
+		super(YenGraphColoring).__init__(self)
+		self.k = k 
 
-	routes = yen(A, SD, info.K)
+	def share_edge(self, p, r):
+		if p[0][r[0]-1] == p[1][r[1]-1] and p[0][r[0]] == p[1][r[1]]:
+			return True
+		elif p[0][r[0]] == p[1][r[1]-1] and p[0][r[0]-1] == p[1][r[1]]:
+			return True
+		else:
+			return False
+
+
+	# TODO: G is the traffix_mtx data structure, NOT a net class object
+	def g2h_converter(self, G):
+		H = np.zeros((nc,nc), dtype=np.uint8)
+		colors = {}
+
+		i = 0
+		j = 0
+		# OBS.: @key_x = (ODλ), @r_x = int
+		for key_i in G:
+			if not isinstance(key_i, tuple):
+				continue
+			colors.append(key_i[2])
+			for key_j in G:
+				if not isinstance(key_j, tuple) or key_i == key_j:
+					continue
+				# cross compare paths i & j
+				for path_i in G[key_i]:
+					i += 1 # keep track of the counter
+					for path_j in G[key_j]:
+						j += 1 # keep track of the counter
+						# cross compare routers i & j
+						for r_i in xrange(1, len(path_i)): 
+							for r_j in xrange(1, len(path_j)):
+								if self.share_edge((path_i,path_j), (r_i,r_j)):
+									H[i][j] = H[j][i] = 1
+
+		return H, colors
+
+	def rwa(self, net, orig, dest, holding_time, until_next):
+		routes = yen(net.adj_mtx, orig, dest, self.k)
 
 	for R in routes:
 		paths.append([R, None])
 
-		H = np.zeros((len(paths), len(paths)), dtype=np.int)
-		if len(paths) > 1:
-			for i in xrange(len(paths)): # cross compare paths on i and j
-				for j in xrange(i+1, len(paths)):
-					for m in xrange(1,len(paths[i][0])): # cross compare routers on m and n
-						for n in xrange(1,len(paths[j][0])):
-							if (paths[i][0][m-1] == paths[j][0][n-1] and \
-								paths[i][0][m]   == paths[j][0][n]) \
-								or \
-								(paths[i][0][m]  == paths[j][0][n-1] and \
-								paths[i][0][m-1] == paths[j][0][n]):
-								H[i][j] = 1
-								H[j][i] = 1
+		H = self.g2h_converter(net.traffix_mtx)
 
 		colors = {}
 		for i in xrange(len(paths)):
 			if paths[i][1] is not None:
 				colors[i] = paths[i][1]
 
-		color = greedy_color(H, colors)
+		color = self.greedy_color(H, colors)
 
 		if color < info.NSF_NUM_CHANNELS:
 			for r in xrange(len(R)-1):
@@ -447,7 +501,7 @@ class YenGraphColoring(N, A, T, holding_time, paths):
 	return 1 # blocked
 
 # TODO: Main Genetic Algorithm Function
-def GeneticAlgorithm(N, A, T, holding_time):
+class GeneticAlgorithm(RWAAlgorithm)
 	# generates initial population with random but valid chromosomes
 	population = [] # [ [[chrom], [L], wl_avail, r_len], [[chrom], [L], wl_avail, r_len], ..., ]
 	trials = 0

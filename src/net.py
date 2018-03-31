@@ -27,7 +27,7 @@ class Network(object):
 		self.num_channels      = ch_n    # int
 		self.channel_init_free = ch_free # bool
 		self.channel_init_bias = ch_bias # probs for a given λ be *NOT* free 
-		self.multi_source_dest = True    # allow multiple OD conn. pairs?
+		self.allow_multi_od    = True    # allow multiple OD conn. pairs?
 
 		self.wave_mtx     = None  # W copy
 		self.adj_mtx      = None  # A copy
@@ -66,7 +66,7 @@ class Network(object):
 		# network
 		dimension = (self.num_nodes, self.num_nodes, self.num_channels)
 		time_mtx = np.zeros(dimension, dtype=np.float64)
-		t_mtx = {'time' : time_mtx}
+		t_mtx = {'time':time_mtx, 'num_conn':0} # init the number of running connections
 
 		# the percentage of occupied channels is defined by the bias parameter
 		#   nlinks * nchannels ---> 100 %             # λ total
@@ -143,6 +143,7 @@ class Network(object):
 				t_mtx['time'][rnext][rcurr][w] = holding_time # symmetric
 				ch_i += 1 # update channel counter
 
+			t_mtx['num_conn'] += 1 # update the number of running connections
 			route = [] # flush path to calculate a new, fresh one
 
 		# wavelength availability 3D matrix: range of the values is [0,1] (int2)
@@ -180,7 +181,7 @@ class Network(object):
 		self.adj_mtx     = self.__adjacency_matrix.copy()  # matrix
 		self.traffic_mtx = self.__traffic_matrix.copy()    # dict
 
-	# update all channels that are still being used
+	# on traffic matrix, update all channels that are still being used
 	# dict size-changed RuntimeError exc. - https://stackoverflow.com/q/11941817
 	def update_network(self, until_next):
 		""" A method that does something """
