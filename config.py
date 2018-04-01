@@ -2,16 +2,15 @@
 # -*- coding: utf-8 -*-
 # vim: set fileencoding=utf-8
 #
-# GA: RWA with GOF
-# Genetic Algorithm  
-# Routing and Wavelength Assignment
-# General Objective Function
+# RWA Simulator
+# Routing and Wavelength Assignment with Static Traffic Simulator for
+# All-Optical WDM Networks
 #
 # Author: Apr 2016
 # Cassio Trindade Batista - cassio.batista.13@gmail.com
 # Federal University of Pará (UFPA). Belém, Brazil.
 #
-# Last edited on Mar, 2018
+# Last revised on Mar, 2018
 
 import os
 
@@ -44,6 +43,7 @@ ALG_YGC    = True  # use 'Yen + Graph Coloring'       algoritihms in simulation?
 ALG_GA     = True  # use 'Genetic Algorithm'                      in simulation?    
 ALG_GOF    = True  # use 'General Objective Function' algoritihm  in simulation?    
 
+# TODO: pass everything as a dict to the class
 # GA Parameters
 GA_SIZE_POP       = 30     # size of the population of each species
 

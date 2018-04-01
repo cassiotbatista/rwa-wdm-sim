@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 # vim: set fileencoding=utf-8
 #
-# GA: RWA with GOF
-# Genetic Algorithm
-# Routing and Wavelength Assignment
-# General Objective Function
+# RWA Simulator
+# Routing and Wavelength Assignment with Static Traffic Simulator for
+# All-Optical WDM Networks
 #
 # Author: Apr 2016
 # Cassio Trindade Batista - cassio.batista.13@gmail.com
@@ -53,6 +52,7 @@ class Routing(object):
 	# ... reference/algorithms.shortest_paths.html
 	def dijkstra(self, A, o, d):
 		""" Certainly does something """
+
 		if not self.is_od_pair_ok(A, o, d):
 			sys.stderr.write('Error: source (%d) or destination (%d) ' % (o,d))
 			sys.stderr.write('indexes are invalid.\n')
@@ -66,6 +66,8 @@ class Routing(object):
 	# https://networkx.github.io/documentation/networkx-1.10/...
 	# ... reference/algorithms.simple_paths.html
 	def yen(self, A, o, d, k):
+		""" Apply k-shortest path algorithm for routing only """
+
 		if not self.is_od_pair_ok(A, o, d) or k < 0:
 			sys.stderr.write('Error: source (%d) or destination (%d) ' % (s,d))
 			sys.stderr.write('indexes might be invalid.\n')
@@ -79,12 +81,14 @@ class Routing(object):
 
 class WavelengthAssignment(object):
 	""" Class Wavelength Assignment """
+
 	def __init__(self):
 		pass
 
 	# local knowledge first fit wavelength assignment
 	def first_fit(self, W, route, num_channels):
 		""" Certainly does something """
+
 		# look at the source node only (1st link)
 		rcurr = route[0] 
 		rnext = route[1]
@@ -100,6 +104,7 @@ class WavelengthAssignment(object):
 
 	def share_edge(self, p):
 		""" a method to check if two physical paths have a physical link in common """
+
 		# gambiarra: 'listerator' to avoid using two variables
 		r = [None, None] 
 		for r[0] in xrange(1, len(p[0])):
@@ -157,6 +162,8 @@ class WavelengthAssignment(object):
 	# ... reference/algorithms.coloring.html
 	# FIXME
 	def greedy_color(self, H, colors, strategy=nx.coloring.strategy_largest_first):
+		""" vertex coloring """
+
 		G = nx.from_numpy_matrix(H, create_using=nx.Graph())
 		if len(G):
 			# set to keep track of colors of neighbours
@@ -192,6 +199,7 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 
 	def is_wave_available(self, wave_mtx, route, wavelength):
 		""" check if a wavelength is available over all links of the path """
+
 		# check if the λ chosen at the first link is availble on all links of R
 		length = len(route)
 		for r in xrange(length-1):
@@ -232,6 +240,8 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 
 	# https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.append.html
 	def save_erlang_blocks(self, net_key, net_num_nodes, total_calls):
+		""" This does something """
+
 		for node in xrange(net_num_nodes):
 			# compute a percentage of blocking probability per Erlang
 			block_prob_per_erlang = 100.0 * self.block_count[node] / total_calls 
@@ -241,6 +251,8 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 	# https://docs.scipy.org/doc/numpy-1.14.0/reference/generated/numpy.savetxt.html
 	# numpy append to file with savetxt() - https://stackoverflow.com/q/27786868
 	def save_blocks_to_file(self, basedir, net_name, net_num_nodes, ch_n):
+		""" This does something """
+
 		# e.g.: DFF_ARPA_8ch.txt
 		blockfilename = '%s_%s_%dch.txt' % (self.name, net_name, ch_n)
 		with open(blockfilename, 'a') as blockfile:
@@ -251,6 +263,7 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 
 	def plot_fits(self, fits, PT_BR=False):
 		""" This method plots """
+
 		if PT_BR:
 			import sys
 			reload(sys)  
@@ -299,6 +312,8 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 
 	# TODO
 	def plot_bp(self, net):
+		""" Plot blocing probabilities """
+
 		if PT_BR:
 			import sys
 			reload(sys)  
@@ -319,6 +334,7 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 
 class DijkstraFirstFit(RWAAlgorithm):
 	""" Dijkstra and First Fit """
+
 	def __init__(self):
 		super(DijkstraFirstFit, self).__init__()
 		self.name     = 'DFF'
@@ -349,6 +365,7 @@ class DijkstraFirstFit(RWAAlgorithm):
 # FIXME FIXME FIXME
 class DijkstraGraphColoring(RWAAlgorithm):
 	""" Dijkstra + Graph Coloring """
+
 	def __init__(self):
 		super(DijkstraGraphColoring, self).__init__()
 
@@ -430,6 +447,7 @@ class YenGraphColoring(RWAAlgorithm):
 
 class YenFirstFit(RWAAlgorithm):
 	""" A class that does something """
+
 	def __init__(self, k):
 		super(YenFirstFit, self).__init__()
 		self.k = k
@@ -462,6 +480,8 @@ class YenFirstFit(RWAAlgorithm):
 
 # TODO: Main Genetic Algorithm Function
 class GeneticAlgorithm(RWAAlgorithm, Environment)
+	""" GA class """
+
 	def __init__(self):
 		super(GeneticAlgorithm, self).__init__()
 

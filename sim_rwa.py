@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 # vim: set fileencoding=utf-8
 #
-# GA: RWA with GOF
-# Genetic Algorithm: 
-# Routing and Wavelength Assignment with General Objective Function
+# RWA Simulator
+# Routing and Wavelength Assignment with Static Traffic Simulator for
+# All-Optical WDM Networks
 #
-# Authors: April 2017
+# Author: April 2017
 # Cassio Trindade Batista - cassio.batista.13@gmail.com
 # Federal University of Pará (UFPA). Belém, Brazil.
 #

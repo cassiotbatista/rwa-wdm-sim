@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 # vim: set fileencoding=utf-8
 #
-# GA: RWA with GOF
-# Genetic Algorithm
-# Routing and Wavelength Assignment
-# General Objective Function
+# RWA Simulator
+# Routing and Wavelength Assignment with Static Traffic Simulator for
+# All-Optical WDM Networks
 #
 # Author: Feb 2018
 # Cassio Trindade Batista - cassio.batista.13@gmail.com
@@ -18,6 +17,7 @@ import numpy as np
 
 class Network(object):
 	""" Network: A superclass that does something """
+
 	# T's inspiration: http://fnss.github.io/doc/core/apidoc/fnss.classes.html
 	__wavelength_matrix = None   # W (3D numpy array/matrix)
 	__adjacency_matrix  = None   # A (2D numpy array/matrix)
@@ -35,6 +35,7 @@ class Network(object):
 
 	def init_network(self):
 		""" Generate matrices W, A and T """
+
 		# define links or edges as node index pairs 
 		links = self.get_edges()
 
@@ -177,6 +178,7 @@ class Network(object):
 	# dict size-changed RuntimeError exc. - https://stackoverflow.com/q/11941817
 	def update_network(self, until_next):
 		""" A method that does something """
+
 		for key in self.traffic_mtx.keys(): 
 			if not isinstance(key, tuple): # ensure we don't mess with the 3D mtx
 				continue # because we want @key to be (ODλ)
@@ -230,6 +232,7 @@ class Network(object):
 
 	def plot_topology(self, bestroute=False, PT_BR=False):
 		""" A function to plot """
+
 		if PT_BR:
 			import sys
 			reload(sys)  
@@ -301,7 +304,8 @@ class AdvancedResearchProjectsAgency(Network):
 		self.dest_node   = 12  # destination node defined for all connections
 
 	def get_edges(self):
-		""" get """
+		""" get edges """
+
 		return [\
 			(0,1), (0,2), (0,19),  #  0
 			(1,2), (1,3),          #  1
@@ -354,6 +358,7 @@ class AdvancedResearchProjectsAgency(Network):
 
 class CooperacionLatinoAmericana(Network): 
 	""" Cooperación Latino Americana de Redes Avanzadas (RedClara) """
+
 	def __init__(self, ch_n, ch_f, ch_b):
 		super(CooperacionLatinoAmericana, self).__init__(ch_n, ch_f, ch_b)
 		self.name        = 'CLARA'
@@ -404,6 +409,7 @@ class CooperacionLatinoAmericana(Network):
 
 class Italian(Network): 
 	""" Italian Network (NSFNET) """
+
 	def __init__(self, ch_n, ch_f, ch_b):
 		super(Italian, self).__init__(ch_n, ch_f, ch_b)
 		self.name        = 'ITA'
@@ -472,6 +478,7 @@ class Italian(Network):
 
 class JointAcademic(Network): 
 	""" U.K. Joint Academic Network (JANET) """
+
 	def __init__(self, ch_n, ch_f, ch_b):
 		super(JointAcademic, self).__init__(ch_n, ch_f, ch_b)
 		self.name        = 'JANET'
@@ -511,6 +518,7 @@ class JointAcademic(Network):
 
 class NationalScienceFoundation(Network): 
 	""" U.S. National Science Foundation Network (NSFNET) """
+
 	def __init__(self, ch_n, ch_f, ch_b):
 		super(NationalScienceFoundation, self).__init__(ch_n, ch_f, ch_b)
 		self.name        = 'NSF'
@@ -564,6 +572,7 @@ class NationalScienceFoundation(Network):
 
 class RedeNacionalPesquisa(Network): 
 	""" Rede (Brasileira) Nacional de Pesquisa (Rede Ipê / RNP) """
+
 	def __init__(self, ch_n, ch_f, ch_b):
 		super(RedeNacionalPesquisa, self).__init__(ch_n, ch_f, ch_b)
 		self.name        = 'RNP'
