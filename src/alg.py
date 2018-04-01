@@ -14,7 +14,6 @@
 # Last edited on March 2018
 #
 # References:
-# - random 'biased' choice: https://stackoverflow.com/q/25507558
 # - import from parent dir: https://stackoverflow.com/a/30536516
 # - multiple inheritance:   https://stackoverflow.com/q/3277367
 
@@ -31,22 +30,27 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 class Routing(object):
 	""" Class Routing """
+
 	def __init__(self):
 		pass
 
 	def is_od_pair_ok(self, adj_mtx, orig, dest):
-		if orig < 0 or dest < 0:
+		if orig == dest:
+			return False
+		# TODO those two 'elif's below are really really necessary?
+		elif orig < 0 or dest < 0: 
+			sys.stderr.write('ta caindo o forninho\n')
+			sys.stderr.flush()
 			return False
 		elif orig > adj_mtx.shape[0] or dest > adj_mtx.shape[0]:
-			return False
-		elif orig == dest:
+			sys.stderr.write('ta caindo o forninho\n')
+			sys.stderr.flush()
 			return False
 		else:
 			return True
 
 	# https://networkx.github.io/documentation/networkx-1.10/...
 	# ... reference/algorithms.shortest_paths.html
-	# FIXME
 	def dijkstra(self, A, o, d):
 		""" Certainly does something """
 		if not self.is_od_pair_ok(A, o, d):
@@ -61,7 +65,6 @@ class Routing(object):
 
 	# https://networkx.github.io/documentation/networkx-1.10/...
 	# ... reference/algorithms.simple_paths.html
-	# FIXME
 	def yen(self, A, o, d, k):
 		if not self.is_od_pair_ok(A, o, d) or k < 0:
 			sys.stderr.write('Error: source (%d) or destination (%d) ' % (s,d))
@@ -75,23 +78,80 @@ class Routing(object):
 		return paths[:k]
 
 class WavelengthAssignment(object):
+	""" Class Wavelength Assignment """
 	def __init__(self):
 		pass
 
 	# local knowledge first fit wavelength assignment
-	# FIXME
-	def first_fit(self, N, R, num_channels):
+	def first_fit(self, W, route, num_channels):
 		""" Certainly does something """
-		rcurr, rnext = R[0], R[1] # look at the source node only (1st link)
+		# look at the source node only (1st link)
+		rcurr = route[0] 
+		rnext = route[1]
 		# Check whether each wavelength w is available 
 		# on the first link of route R (only at the 1st link)
 		for w in xrange(num_channels):
-			if N[rcurr][rnext][w]:
-				# automatically checks if the wavelength is available 
-				# * ONLY at the output of the node *
-				return self.check_local_availability(N, R, w)
+			# if the wavelength is available at the output node
+			if W[rcurr][rnext][w]:
+				# return it as the first one who fits :)
+				return w
 
-		return None # block
+		return None # no wavelength available at the output of the source node
+
+	def share_edge(self, p):
+		""" a method to check if two physical paths have a physical link in common """
+		# gambiarra: 'listerator' to avoid using two variables
+		r = [None, None] 
+		for r[0] in xrange(1, len(p[0])):
+			for r[1] in xrange(1, len(p[1])):
+				# check directly equal links
+				# 0 5 6 7 8 [9 12]
+				# 0 1 3 4   [9 12]
+				if p[0][r[0]-1] == p[1][r[1]-1] and p[0][r[0]] == p[1][r[1]]:
+					return True
+				# check reversely equal links: qraph is bidirectional
+				# 0     [5 6]  7  8 9 12
+				# 0 1 3 [6 5] 10 12
+				elif p[0][r[0]] == p[1][r[1]-1] and p[0][r[0]-1] == p[1][r[1]]:
+					return True
+		return False
+
+	def g2h(self, G, route, key):
+		""" pre-step for greedy coloring: convert a graph G to a graph H """
+
+		# gambiarra: the new connection must be at the traffic matrix before
+		# starting coloring the vertices
+		traffic_mtx[key] = {tuple(route):0.00}
+		num_calls = G['num_calls']+1 # consider the path you're goin to assign a λ
+
+		H = np.zeros((num_calls,num_calls), dtype=np.uint8)
+
+		i = 0
+		j = 0
+		colors = {}
+		# OBS.: @key_x = tuple(ODλ), @path_x = tuple(0,2,5,12)
+		for key_i in G:
+			if not isinstance(key_i, tuple):
+				continue
+			if G[key_i][2] != -1:
+				colors[i] = G[key_i][2] # FIXME get wavelength
+			for key_j in G:
+				if not isinstance(key_j, tuple):
+					continue
+				# check if tuples are direcly or reversely equal (OD <-> OD|DO)
+				elif is_same_traffic_entry(key_i, key_j):
+					continue
+				# cross compare paths i & j
+				for path_i in G[key_i]:
+					i += 1 # keep track of the counter
+					for path_j in G[key_j]:
+						j += 1 # keep track of the counter
+						# cross compare each and every router of i & j
+						if self.share_edge((path_i, path_j)):
+							H[i][j] = 1
+							H[i][j] = 1
+
+		return H, colors
 
 	# https://networkx.github.io/documentation/development/...
 	# ... reference/algorithms.coloring.html
@@ -124,41 +184,14 @@ class WavelengthAssignment(object):
 
 class RWAAlgorithm(Routing, WavelengthAssignment):
 	""" This class certainly does something """
+
 	def __init__(self):
 		super(RWAAlgorithm, self).__init__()
 		self.block_count = [] # to store the number of blocked calls
 		self.block_dict  = {} # store percentage of blocked calls per generation
 
-	def routing(self):
-		""" This method will be overriden """
-		pass
-
-	def wavelength_assignment(self):
-		""" This method will be overriden """
-		pass
-
-	# FIXME
-	# GLOBAL KNOWLEDGE first fit wavelength assignment
-	def check_global_availability(self):
-		color = None
-		for R in routes:
-			avail = 2**info.NSF_NUM_CHANNELS-1
-			for r in xrange(len(R)-1):
-				rcurr = R[r]
-				rnext = R[r+1]
-
-				avail &= N[rcurr][rnext]
-
-				if avail == 0:
-					break
-
-			if avail > 0:
-				color = format(avail, '0%db' % info.NSF_NUM_CHANNELS)[::-1].index('1')
-				break
-
-	# FIXME
-	def check_local_availability(self, wave_mtx, route, wavelength):
-		""" local knowledge wavelength assignment """
+	def is_wave_available(self, wave_mtx, route, wavelength):
+		""" check if a wavelength is available over all links of the path """
 		# check if the λ chosen at the first link is availble on all links of R
 		length = len(route)
 		for r in xrange(length-1):
@@ -166,10 +199,36 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 			rnext = route[r+1]
 
 			# if not available in any of the next links, block
-			if not N[rcurr][rnext][wavelength]:
-				return None # blocked
+			if not wave_mtx[rcurr][rnext][wavelength]:
+				return False # call must be blocked
 
-		return wavelength
+		return True
+
+	def alloc_net_resources(self, net, route, o, d, w, ht):
+		""" eita giovana """
+
+		# update traffic matrix 1/2: tuple dicts
+		key = (o, d, w)
+		net.traffic_mtx[key].update({tuple(route):ht})
+
+		# increase traffic matrix's call counter
+		net.traffic_mtx['num_calls'] += 1 
+
+		# update trafffic matrix 2/2: np 3D array
+		length = len(route)
+		for r in xrange(length-1):
+			rcurr = route[r]
+			rnext = route[r+1]
+
+			# make λ NOT available on all links of the path 
+			# do not forget to make the wavelength matrix symmetrical
+			net.wave_mtx[rcurr][rnext][w] = 0
+			net.wave_mtx[rnext][rcurr][w] = 0 # symmetric
+	
+			# assign a time for it to be free again (released)
+			# do not forget to make the traffic matrix symmetrical
+			net.traffic_mtx['time'][rcurr][rnext][w] = ht
+			net.traffic_mtx['time'][rnext][rcurr][w] = ht # symmetric
 
 	# https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.append.html
 	def save_erlang_blocks(self, net_key, net_num_nodes, total_calls):
@@ -259,249 +318,153 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 		ax.xaxis.set_major_formatter(formatter)
 
 class DijkstraFirstFit(RWAAlgorithm):
+	""" Dijkstra and First Fit """
 	def __init__(self):
-		super(DijkstraFirstFit).__init__(self)
+		super(DijkstraFirstFit, self).__init__()
 		self.name     = 'DFF'
 		self.fullname = 'Dijkstra and First Fit'
 
-	def routing(self, adj_mtx, source, destination):
-		return self.dijkstra(adj_mtx, source, destination)
-
-	def wavelength_assignment(self):
-		return self.first_fit()
-
-	def rwa(self, N, A, T, s, d, holding_time):
+	def rwa(self, net, orig, dest, hold_t)
 		""" This method RWAs """
 		# call the routing method
-		route = self.routing(A, s, d)
+		route = self.dijkstra(net.adj_mtx, orig, dest)
 
 		# call the wavelength assignment method
-		# TODO
-		wavelength = self.wavelength_assignment(route, N, route, CHANNELS FIXME)
+		wavelength = self.first_fit(net.wave_mtx, route, net.num_channels)
 
+		# if WA was successful, allocate resources on the network
 		if wavelength is not None:
-			# if available on all links of R, alloc net resources for the call
-			length = len(route)
-			for r in xrange(length-1):
-				rcurr = route[r]
-				rnext = route[r+1]
-
-				# make λ NOT available on all links of the path 
-				# do not forget to make the wavelength matrix symmetrical
-				N[rcurr][rnext][wavelength] = 0
-				N[rnext][rcurr][wavelength] = N[rcurr][rnext][wavelength] # symm.
-		
-				# assign a time for it to be free again (released)
-				# do not forget to make the traffic matrix symmetrical
-				T[rcurr][rnext][wavelength] = holding_time
-				T[rnext][rcurr][wavelength] = T[rcurr][rnext][wavelength] # symm.
-	
+			# but first things first: we need to check whether this same
+			# *FIRST λ* is available on all links of the path in order to
+			# establish a connection over it
+			if self.is_wave_available(net.wave_mtx, route, wavelength):
+				# now we can establish a connection. so let's allocate
+				# resources of the network for this call
+				self.alloc_net_resources(net,
+						route, orig, dest, wavelength, hold_t)
 			return 0 # allocated
-		else:
-			return 1 # block
+
+		return 1 # block
 
 # FIXME FIXME FIXME
 class DijkstraGraphColoring(RWAAlgorithm):
 	""" Dijkstra + Graph Coloring """
 	def __init__(self):
-		super(DijkstraGraphColoring).__init__(self)
+		super(DijkstraGraphColoring, self).__init__()
 
-	def rwa(net, orig, dest, holding_time, until_next):
+	def rwa(net, orig, dest, hold_t)
+		# call the routing method
 		route = self.dijkstra(net.adj_mtx, orig, dest)
 
-		paths.append([R, None]) # FIXME
-	
-		H = np.zeros((len(paths), len(paths)), dtype=np.int)
-		if len(paths) > 1:
-			for i in xrange(len(paths)): # cross compare paths on i and j
-				for j in xrange(i+1, len(paths)):
-					for m in xrange(1,len(paths[i][0])): # cross compare routers on m and n
-						for n in xrange(1,len(paths[j][0])):
-							if (paths[i][0][m-1] == paths[j][0][n-1] and \
-								paths[i][0][m]   == paths[j][0][n]) \
-								or \
-								(paths[i][0][m]  == paths[j][0][n-1] and \
-								paths[i][0][m-1] == paths[j][0][n]):
-								H[i][j] = 1
-								H[j][i] = 1
-	
-		colors = {}
-		for i in xrange(len(paths)):
-			if paths[i][1] is not None:
-				colors[i] = paths[i][1]
-	
-		color = greedy_color(H, colors)
-	
-		if color < info.NSF_NUM_CHANNELS:
-			for r in xrange(len(R)-1):
-				rcurr = R[r]
-				rnext = R[r+1]
-	
-				if not get_wave_availability(color, N[rcurr][rnext]):
-					color = None
-					break
-		else:
-			color = None
-	
-		# update NSF graph
-		if color is not None:
-			for r in xrange(len(R)-1):
-				rcurr = R[r]
-				rnext = R[r+1]
-	
-				N[rcurr][rnext] -= 2**color
-				N[rnext][rcurr] = N[rcurr][rnext] # make it symmetric
-	
-				T[rcurr][rnext][color] = holding_time
-				T[rnext][rcurr][color] = T[rcurr][rnext][color]
-	
-			paths[-1][1] = color  # update color of the last route
-			return 0 # allocated
-		else:
-			paths.pop(-1)
-			return 1 # blocked
+		# convert a graph of connections (G, traffic mtx) to an aux graph H
+		invalid_key = (orig, dest, -1)
+		H, colors = self.g2h(net.traffic_mtx, route, invalid_key)
 
-# FIXME FIXME FIXME
-class YenFirstFit(RWAAlgorithm):
-	def __init__(self, k): # TODO: pass k as arg
-		super(YenFirstFit).__init__(self)
-		self.k = k
+		# call the wavelength assignment method over the route
+		# NOTE: g2h() already puts the current route on the traffic matrix
+		# under an invalid key
+		wavelength = self.greedy_color(H, colors)
 
-	def rwa(self, net, orig, dest, holding_time, until_next):
-		routes = yen(net.adj_mtx, orig, dest, self.k)
-
-	for R in routes:
-
-		# LOCAL KNOWLEDGE first fit wavelength assignment
-		color = None
-		rcurr, rnext = R[0], R[1] # get the first two nodes from route R
-		# Check whether each wavelength ...
-		for w in xrange(info.NSF_NUM_CHANNELS):
-			# ... is available on the first link of route R
-			if get_wave_availability(w, N[rcurr][rnext]):
-				color = w
-				break
-
-		if color is not None:
-			# LOCAL KNOWLEDGE assure the color chosen at the first link is
-			# availble on all links of the route R
-			for r in xrange(len(R)-1):
-				rcurr = R[r]
-				rnext = R[r+1]
-
-				# if not available in any of the next links, block
-				if not get_wave_availability(color, N[rcurr][rnext]):
-					color = None
-					break # block for this route, give chance for the alternate
-
-			if color is not None:
-				# if available on all links of R, alloc net resources for the
-				# call
-				for r in xrange(len(R)-1):
-					rcurr = R[r]
-					rnext = R[r+1]
-
-					N[rcurr][rnext] -= 2**color
-					N[rnext][rcurr] = N[rcurr][rnext] # make it symmetric
-		
-					T[rcurr][rnext][color] = holding_time
-					T[rnext][rcurr][color] = T[rcurr][rnext][color]
-
+		# if WA was successful, let's allocate resources on the network
+		if color < net.num_channels:
+			# but first things first: we need to check whether this same *λ* is
+			# available on all links of the path in order to establish a
+			# connection over it
+			if self.is_wave_available(net.wave_mtx, route, wavelength):
+				# now we can establish a connection. so let's pop the last
+				# connection appended to traffic matrix and allocate resources
+				# of the network for this call, also assigning the call for a
+				# proper key ODλ
+				net.traffic_mtx.pop(invalid_key)
+				self.alloc_net_resources(net,
+						route, orig, dest, wavelength, hold_t)
 				return 0 # allocated
 
-	return 1 # blocked
+		# pop the invalid connection from traffic mtx before finally blocking
+		# the call
+		net.traffic_mtx.pop(invalid_key)
+		return 1 # blocked
 
 # FIXME FIXME FIXME
 class YenGraphColoring(RWAAlgorithm):
-	def __init__(self, k): # TODO pass k as arg
-		super(YenGraphColoring).__init__(self)
+	""" Yen + Greedy Coloring """
+
+	def __init__(self, k):
+		super(YenGraphColoring, self).__init__()
 		self.k = k 
 
-	def share_edge(self, p, r):
-		if p[0][r[0]-1] == p[1][r[1]-1] and p[0][r[0]] == p[1][r[1]]:
-			return True
-		elif p[0][r[0]] == p[1][r[1]-1] and p[0][r[0]-1] == p[1][r[1]]:
-			return True
-		else:
-			return False
+	def rwa(self, net, orig, dest, hold_t):
+		# call the routing method. Here, the method returns multiple routes
+		routes = self.yen(net.adj_mtx, orig, dest, self.k)
 
+		for route in routes:
+			# convert a graph of connections (G, traffic mtx) to an aux graph H
+			invalid_key = (orig, dest, -1)
+			H, colors = self.g2h(net.traffic_mtx, route, invalid_key)
 
-	# TODO: G is the traffix_mtx data structure, NOT a net class object
-	def g2h_converter(self, G):
-		H = np.zeros((nc,nc), dtype=np.uint8)
-		colors = {}
+			# call the wavelength assignment method over the current route
+			# NOTE: g2h() already puts the current route on the traffic matrix
+			# under an invalid key
+			wavelength = self.greedy_color(H, colors)
 
-		i = 0
-		j = 0
-		# OBS.: @key_x = (ODλ), @r_x = int
-		for key_i in G:
-			if not isinstance(key_i, tuple):
-				continue
-			colors.append(key_i[2])
-			for key_j in G:
-				if not isinstance(key_j, tuple) or key_i == key_j:
-					continue
-				# cross compare paths i & j
-				for path_i in G[key_i]:
-					i += 1 # keep track of the counter
-					for path_j in G[key_j]:
-						j += 1 # keep track of the counter
-						# cross compare routers i & j
-						for r_i in xrange(1, len(path_i)): 
-							for r_j in xrange(1, len(path_j)):
-								if self.share_edge((path_i,path_j), (r_i,r_j)):
-									H[i][j] = H[j][i] = 1
+			# if WA was successful, let's allocate resources on the network
+			if color < net.num_channels:
+				# but first things first: we need to check whether this same
+				# *λ* is available on all links of the path in order to
+				# establish a connection over it
+				if self.is_wave_available(net.wave_mtx, route, wavelength):
+					# now we can establish a connection. so let's pop last
+					# connection appended to traffic matrix and allocate
+					# resources of the network for this call, also assigning
+					# the call for a proper key ODλ
+					net.traffic_mtx.pop(invalid_key)
+					self.alloc_net_resources(net,
+							route, orig, dest, wavelength, hold_t)
+					return 0 # allocated
 
-		return H, colors
-
-	def rwa(self, net, orig, dest, holding_time, until_next):
-		routes = yen(net.adj_mtx, orig, dest, self.k)
-
-	for R in routes:
-		paths.append([R, None])
-
-		H = self.g2h_converter(net.traffix_mtx)
-
-		colors = {}
-		for i in xrange(len(paths)):
-			if paths[i][1] is not None:
-				colors[i] = paths[i][1]
-
-		color = self.greedy_color(H, colors)
-
-		if color < info.NSF_NUM_CHANNELS:
-			for r in xrange(len(R)-1):
-				rcurr = R[r]
-				rnext = R[r+1]
-
-				if not get_wave_availability(color, N[rcurr][rnext]):
-					color = None
-					break
-		else:
-			color = None
-
-		# update NSF graph
-		if color is not None:
-			for r in xrange(len(R)-1):
-				rcurr = R[r]
-				rnext = R[r+1]
-
-				N[rcurr][rnext] -= 2**color
-				N[rnext][rcurr] = N[rcurr][rnext] # make it symmetric
-
-				T[rcurr][rnext][color] = holding_time
-				T[rnext][rcurr][color] = T[rcurr][rnext][color]
-
-			paths[-1][1] = color  # update color of the last route
-			return 0 # allocated
-		else:
-			paths.pop(-1)
 			# try another route insted of blocking immediately
+			# pop the invalid connection from traffic mtx before trying again
+			net.traffic_mtx.pop(invalid_key)
 
-	return 1 # blocked
+		return 1 # blocked
+
+class YenFirstFit(RWAAlgorithm):
+	""" A class that does something """
+	def __init__(self, k):
+		super(YenFirstFit, self).__init__()
+		self.k = k
+
+	def rwa(self, net, orig, dest, hold_t):
+		# call the routing method. Here, the method returns multiple routes
+		routes = self.yen(net.adj_mtx, orig, dest, self.k)
+
+		for route in routes:
+			# call the wavelength assignment method over the current route
+			wavelength = self.first_fit(net.wave_mtx, route, net.num_channels)
+
+			# if WA was successful, let's allocate resources on the network
+			if wavelength is not None:
+				# but first things first: we need to check whether this same
+				# *FIRST λ* is available on all links of the path in order to
+				# establish a connection over it
+				if self.is_wave_available(net.wave_mtx, route, wavelength):
+					# now we can establish a connection. so let's allocate
+					# resources of the network for this call
+					self.alloc_net_resources(net,
+							route, orig, dest, wavelength, hold_t)
+					return 0 # allocated
+
+			# TIP: if WA wasn't successfull, we give chance to another route,
+			# because this current one does not have a wavelength available over
+			# all its links
+
+		return 1 # blocked
 
 # TODO: Main Genetic Algorithm Function
-class GeneticAlgorithm(RWAAlgorithm)
+class GeneticAlgorithm(RWAAlgorithm, Environment)
+	def __init__(self):
+		super(GeneticAlgorithm, self).__init__()
+
 	# generates initial population with random but valid chromosomes
 	population = [] # [ [[chrom], [L], wl_avail, r_len], [[chrom], [L], wl_avail, r_len], ..., ]
 	trials = 0
@@ -590,7 +553,7 @@ class GeneticAlgorithm(RWAAlgorithm)
 			N[rcurr][rnext] -= 2**color
 			N[rnext][rcurr] = N[rcurr][rnext] # make it symmetric
 
-			T[rcurr][rnext][color] = holding_time
+			T[rcurr][rnext][color] = hold_t
 			T[rnext][rcurr][color] = T[rcurr][rnext][color]
 
 		return 0 # allocated

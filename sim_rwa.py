@@ -28,29 +28,35 @@ import numpy as np
 # pretty-print a np array - https://stackoverflow.com/q/2891790
 np.set_printoptions(precison=2)
 
-from info import *
+from config import *
 from net import *
 from alg import *
 
-# init all nets
+# init all networks
 def init_nets():
 	nets = []
 	if NET_ARPA:
-		nets.append(AdvancedResearchProjectsAgency()) # 0 ARPA
+		nets.append(AdvancedResearchProjectsAgency(NET_NUM_CHANNELS,
+				NET_CHANNEL_FREE, NET_CHANNEL_BIAS)) 
 	if NET_CLARA:
-		nets.append(CooperacionLatinoAmericana())     # 1 CLARA
+		nets.append(CooperacionLatinoAmericana(NET_NUM_CHANNELS,
+				NET_CHANNEL_FREE, NET_CHANNEL_BIAS))
 	if NET_ITA:
-		nets.append(Italian())                        # 3 ITALIAN
+		nets.append(Italian(NET_NUM_CHANNELS,
+				NET_CHANNEL_FREE, NET_CHANNEL_BIAS))
 	if NET_JANET:
-		nets.append(JointAcademic())                  # 4 JANET
+		nets.append(JointAcademic(NET_NUM_CHANNELS,
+				NET_CHANNEL_FREE, NET_CHANNEL_BIAS))
 	if NET_NSF:
-		nets.append(NationalScienceFoundation())      # 5 NSF
+		nets.append(NationalScienceFoundation(NET_NUM_CHANNELS,
+				NET_CHANNEL_FREE, NET_CHANNEL_BIAS))
 	if NET_RNP:
-		nets.append(RedeNacionalPesquisa())           # 6 RNP
+		nets.append(RedeNacionalPesquisa(NET_NUM_CHANNELS,
+				NET_CHANNEL_FREE, NET_CHANNEL_BIAS))
 
 	return nets
 
-# init all algs
+# init all algorithms
 def init_algs():
 	algs = []
 	if ALG_DFF:
@@ -58,10 +64,10 @@ def init_algs():
 	if ALG_DGC:
 		algs.append(DijkstraGraphColoring())    # 1 GGC
 	if ALG_YFF:
-		algs.append(YenFirstFit())              # 2 YFF
+		algs.append(YenFirstFit(YEN_K))         # 2 YFF
 	if ALG_YGC:
-		algs.append(YenGraphColoring())         # 3 YGC
-	if ALG_GA:
+		algs.append(YenGraphColoring(YEN_K))    # 3 YGC
+	if ALG_GA: # FIXME I need to pass some args from config.py here
 		algs.append(GeneticAlgorithm())         # 4 GA
 	if ALG_GOF:
 		algs.append(GeneralObjectiveFunction()) # 5 GOF (alone)
@@ -74,7 +80,7 @@ def poisson_arrival():
 		r = np.random.uniform()
 	return -np.log(1-r)
 
-def get_od_pair(net)
+def gen_od_pair(net)
 	if not net.allow_multi_od:
 		return net.source_node, net.dest_node
 
@@ -123,9 +129,9 @@ def main():
 
 			# FIXME apply RWA
 			for n in nets:
-				o, d = get_od_pair(n)
+				o, d = gen_od_pair(n)
 				for a in algs:
-					a.block_count[o] += a.rwa(n, o, k, holding_time, until_next)
+					a.block_count[o] += a.rwa(n, o, d, holding_time)
 
 			if DEGUB:
 				sys.stdout.write('\rLoad: %2d/%2d Simul: %4d/%4d\t' % (load,
@@ -136,7 +142,7 @@ def main():
 
 			# update networks
 			for n in nets:
-				n.update_network()
+				n.update_network(until_next)
 		# exits Poisson for (call) loop
 
 		# save % BP per load (partial BP per erlang. max=100%)

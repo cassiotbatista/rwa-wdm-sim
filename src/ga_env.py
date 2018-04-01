@@ -18,15 +18,9 @@
 # A New Proposal of an Efficient Algorithm for Routing and Wavelength 
 # Assignment (RWA) in Optical Networks
 
-
-import sys, os
+import sys
+import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import info
-import nsf
-
-from termcolor import colored
-from operator import itemgetter
 
 import math
 import random
@@ -36,7 +30,7 @@ class Environment(object):
 		pass
 
 	# TODO: Create Population
-	def make_chromosome(nsfnet, start_router, end_router, allels):
+	def make_chromosome(self, adj_mtx, start_router, end_router, allels):
 		count = 0
 		# 1. start from source node
 		current_router = start_router
@@ -45,18 +39,18 @@ class Environment(object):
 			# 2. randomly choose, with equal probability, one of the nodes that
 			# is SURELY connected to the current node to be the next in path
 			next_router = random.choice(allels)
-	
+
 			# SURELY: check whether there is an edge/link/connection or not
-			if nsfnet[current_router][next_router] > 0.0: 
+			if adj_mtx[current_router][next_router]: 
 				# 3. if the chosen node hasn't been visited before, mark it as the
 				# next in the path (gene). Otherwise find another node
 				current_router = next_router
 				chromosome.append(allels.pop(allels.index(current_router)))
-	
+
 				# 6. do this until the destination node is found
 				if current_router == end_router:
 					break
-	
+
 				count = 0
 			else:
 				# max trials to find a valid path: average of 100 chances per gene
@@ -64,37 +58,36 @@ class Environment(object):
 				if count > 100:
 					chromosome = False
 					break
-	
+
 		if chromosome and len(chromosome) > info.NSF_NUM_NODES:
 			chromosome = False
-	
+
 		return chromosome
-	
-	def evaluate(R, N):
-		def get_wave_availability(k, n):
-			return (int(n) & ( 1 << k )) >> k
-	
-		l = len(R)-1
-		L = []
-		for w in xrange(1, info.NSF_NUM_CHANNELS+1):
+
+	def evaluate(self, net, route):
+		""" GOF is applied here """
+
+		l = len(route)-1
+		L = [] # labels
+		for w in xrange(1, net.num_channels+1):
 			num = 0
 			for i in xrange(l):
-				rcurr = R[i]
-				rnext = R[i+1]
-				num += w * get_wave_availability(w-1, N[rcurr][rnext])
+				rcurr = route[i]
+				rnext = route[i+1]
+				num += w * net.wave_mtx([rcurr][rnext][w-1])
 			L.append(num/float(w*l))
-	
+
 		wl_avail = 0
 		for label in L:
 			if label == 1.0:
 				wl_avail += 1
-	
+
 		return L, wl_avail, l+1 # Label, λ's available and length of route
-	
+
 	# TODO: Q: Can I select the same father/mother twice?
 	# TODO: Selection Function
 	# [[chrom], [L], wl_avail, r_len]
-	def select(population, Tc, times=3):
+	def select(self, population, Tc, times=3):
 		""" Tournament """
 		parents = []
 		while len(population)-1:
@@ -112,11 +105,11 @@ class Environment(object):
 						candidate.remove(candidate[0])
 				parents.append(candidate[0][0])
 			population.remove(candidate[0]) # A: no! never the same dad/mum
-	
+
 		return parents
-	
+
 	# TODO: Crossover Function
-	def cross(parents):
+	def cross(self, self, parents):
 		""" One Point """
 		children = []
 		while len(parents)-1 > 0:
@@ -144,59 +137,59 @@ class Environment(object):
 					common_router = random.choice(index_routers)
 					children.append(dad[:common_router[0]] + mom[common_router[1]:])
 					children.append(mom[:common_router[1]] + dad[common_router[0]:])
-	
+
 			if not len(children):
 				children = False
-	
+
 			return children
-	
+
 	# TODO: Mutation Function
-	def mutate(nsfnet, normal_chrom):
+	def mutate(self, nsfnet, normal_chrom):
 		# DO NOT perform mutation if:
 		# route has only one link which directly connects source to target
 		if len(normal_chrom) == 2:
 			return normal_chrom
-	
+
 		trans_chrom = list(normal_chrom) # CAN'T NORMALLY COPY THIS
-	
+
 		# choose a random mutation point, excluding the first and the last
 		geneid = random.randrange(1, len(normal_chrom)-1)
-	
+
 		# extract or pop() source and target nodes from chromosome
 		start_router = trans_chrom.pop(geneid)
 		end_router   = trans_chrom.pop()
-	
+
 		# remove all genes after mutation point
 		for gene in xrange(geneid, len(trans_chrom)):
 			trans_chrom.pop()
-	
+
 		# alphabet: graph vertices that are not in genes before mutation point
 		allels = [start_router, end_router]
 		allels += [a for a in range(info.NSF_NUM_NODES) if a not in trans_chrom]
-	
+
 		# create a new route R from mutation point to target node
 		R = make_chromosome(nsfnet, start_router, end_router, allels)
-	
+
 		# check if new route/path is valid
 		if R:
 			trans_chrom += R
 		else:
 			trans_chrom = list(normal_chrom)
-	
+
 		return trans_chrom
-	
+
 	# [[chrom], [L], wl_avail, r_len]
-	def insertion_sort(A):
+	def insertion_sort(self, A):
 		for j in xrange(1, len(A)):
 			R = A[j]
-	
+
 			i = j-1
 			if R[2]: # if route have λ available, then R[2] > 0
 				while i >= 0 and A[i][3] > R[3]:
 					A[i+1] = A[i]
 					i -= 1
 				A[i+1] = R
-	
+
 		return A
 
 ### EOF ###

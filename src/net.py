@@ -23,8 +23,8 @@ class Network(object):
 	__adjacency_matrix  = None   # A (2D numpy array/matrix)
 	__traffic_matrix    = None   # T (dict)
 
-	def __init__(self, ch_n, ch_free, ch_bias):
-		self.num_channels      = ch_n    # int
+	def __init__(self, ch_num, ch_free, ch_bias):
+		self.num_channels      = ch_num  # int
 		self.channel_init_free = ch_free # bool
 		self.channel_init_bias = ch_bias # probs for a given λ be *NOT* free 
 		self.allow_multi_od    = True    # allow multiple OD conn. pairs?
@@ -32,14 +32,6 @@ class Network(object):
 		self.wave_mtx     = None  # W copy
 		self.adj_mtx      = None  # A copy
 		self.traffic_mtx  = None  # T copy
-
-	def get_edges(self):
-		""" This method will be overriden """
-		pass
-
-	def get_nodes_2D_pos(self):
-		""" This method will be overriden """
-		pass
 
 	def init_network(self):
 		""" Generate matrices W, A and T """
@@ -66,7 +58,7 @@ class Network(object):
 		# network
 		dimension = (self.num_nodes, self.num_nodes, self.num_channels)
 		time_mtx = np.zeros(dimension, dtype=np.float64)
-		t_mtx = {'time':time_mtx, 'num_conn':0} # init the number of running connections
+		t_mtx = {'time':time_mtx, 'num_calls':0} # init the number of running connections
 
 		# the percentage of occupied channels is defined by the bias parameter
 		#   nlinks * nchannels ---> 100 %             # λ total
@@ -143,7 +135,7 @@ class Network(object):
 				t_mtx['time'][rnext][rcurr][w] = holding_time # symmetric
 				ch_i += 1 # update channel counter
 
-			t_mtx['num_conn'] += 1 # update the number of running connections
+			t_mtx['num_calls'] += 1 # update the number of running connections
 			route = [] # flush path to calculate a new, fresh one
 
 		# wavelength availability 3D matrix: range of the values is [0,1] (int2)
@@ -213,6 +205,29 @@ class Network(object):
 						self.wave_mtx[rcurr][rnext][w] = 1
 						self.wave_mtx[rnext][rcurr][w] = 1
 
+	def is_same_traffic_entry(self, odw_key, dow_key):
+		if not isinstance(od_key, tuple) or not isinstance(do_key, tuple):
+			sys.stderr.write('something is wrong\n')
+			return False
+		elif len(od_key) != 3 or len(do_key) != 3:
+			sys.stderr.write('something is wrong\n')
+			return False
+
+		# check direct equality
+		if odw_key[0] == dow_key[0] and odw_key[1] == dow_key[1]:
+			if odw_key[2] == dow_key[2]:
+				return True
+			else:
+				return False
+		# check reversed equality
+		elif odw_key[0] == dow_key[1] and odw_key[1] == dow_key[0]:
+			if odw_key[2] == dow_key[2]:
+				return True
+			else:
+				return False
+		else:
+			return False
+
 	def plot_topology(self, bestroute=False, PT_BR=False):
 		""" A function to plot """
 		if PT_BR:
@@ -274,8 +289,8 @@ class Network(object):
 
 class AdvancedResearchProjectsAgency(Network): 
 	""" U.S. Advanced Research Projects Agency (ARPANET) """
-	def __init__(self):
-		super(AdvancedResearchProjectsAgency, super).__init__()
+	def __init__(self, ch_n, ch_f, ch_b):
+		super(AdvancedResearchProjectsAgency).__init__(ch_n, ch_f, ch_b)
 		self.name        = 'ARPA'
 		self.fullname    = 'Advanced Research Projects Agency'
 		self.num_nodes   = len(self.get_nodes_2D_pos())
@@ -339,8 +354,8 @@ class AdvancedResearchProjectsAgency(Network):
 
 class CooperacionLatinoAmericana(Network): 
 	""" Cooperación Latino Americana de Redes Avanzadas (RedClara) """
-	def __init__(self):
-		super(CooperacionLatinoAmericana, self).__init__()
+	def __init__(self, ch_n, ch_f, ch_b):
+		super(CooperacionLatinoAmericana, self).__init__(ch_n, ch_f, ch_b)
 		self.name        = 'CLARA'
 		self.fullname    = u'Cooperación Latino Americana de Redes Avanzadas'
 		self.num_nodes   = len(self.get_nodes_2D_pos())
@@ -389,8 +404,8 @@ class CooperacionLatinoAmericana(Network):
 
 class Italian(Network): 
 	""" Italian Network (NSFNET) """
-	def __init__(self):
-		super(Italian, self).__init__()
+	def __init__(self, ch_n, ch_f, ch_b):
+		super(Italian, self).__init__(ch_n, ch_f, ch_b)
 		self.name        = 'ITA'
 		self.fullname    = u'Italian'
 		self.num_nodes   = len(self.get_nodes_2D_pos())
@@ -457,14 +472,14 @@ class Italian(Network):
 
 class JointAcademic(Network): 
 	""" U.K. Joint Academic Network (JANET) """
-	def __init__(self):
-		super(JointAcademic, self).__init__()
+	def __init__(self, ch_n, ch_f, ch_b):
+		super(JointAcademic, self).__init__(ch_n, ch_f, ch_b)
 		self.name        = 'JANET'
 		self.fullname    = 'Joint Academic Network'
 		self.num_nodes   = len(self.get_nodes_2D_pos())
 		self.num_links   = len(self.get_edges())
 
-		# the below are used iff multi_SD is set to False # FIXME
+		# FIXME the below are used iff multi_SD is set to False
 		self.source_node = 0   # source node defined for all connections
 		self.dest_node   = 12  # destination node defined for all connections
 
@@ -496,8 +511,8 @@ class JointAcademic(Network):
 
 class NationalScienceFoundation(Network): 
 	""" U.S. National Science Foundation Network (NSFNET) """
-	def __init__(self):
-		super(NationalScienceFoundation, self).__init__()
+	def __init__(self, ch_n, ch_f, ch_b):
+		super(NationalScienceFoundation, self).__init__(ch_n, ch_f, ch_b)
 		self.name        = 'NSF'
 		self.fullname    = 'National Science Foundation'
 		self.num_nodes   = len(self.get_nodes_2D_pos())
@@ -549,8 +564,8 @@ class NationalScienceFoundation(Network):
 
 class RedeNacionalPesquisa(Network): 
 	""" Rede (Brasileira) Nacional de Pesquisa (Rede Ipê / RNP) """
-	def __init__(self):
-		super(RedeNacionalPesquisa, self).__init__()
+	def __init__(self, ch_n, ch_f, ch_b):
+		super(RedeNacionalPesquisa, self).__init__(ch_n, ch_f, ch_b)
 		self.name        = 'RNP'
 		self.fullname    = u'Rede Nacional de Pesquisas (Rede Ipê)'
 		self.num_nodes   = len(self.get_nodes_2D_pos())
