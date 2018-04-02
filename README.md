@@ -1,11 +1,11 @@
-## Routing and Wavelength Assignment using a Genetic Algorithm
+## Routing and Wavelength Assignment Simulator
 [Paper](https://link.springer.com/chapter/10.1007%2F978-3-319-65340-2_35): 
 A Genetic Algorithm (GA) Approach for Routing and Wavelength Assignment (RWA) in
 All-Optical Wavelength Division Multiplexing (WDM) Networks with Static Traffic
 (SLE, which stands for _Static Lightpath Establishment_)
 
-This repo basically basically covers the routing and wavelength assignment
-problem with the following algorithms:
+This repo basically basically contains a simulator that covers the routing and
+wavelength assignment problem with the following algorithms:
 
 * Routing 
   * Dijkstra's algorithm  
@@ -37,6 +37,7 @@ as one of the following:
 	address   = {Cham},
 	pages     = {421--432},
 	doi       = {10.1007/978-3-319-65340-2_35},
+	url       = {\url{https://github.com/cassiobatista/RWA-WDM}},
 	isbn      = {978-3-319-65340-2}
 }
 ```
