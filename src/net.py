@@ -21,7 +21,7 @@ class Network(object):
 	# T's inspiration: http://fnss.github.io/doc/core/apidoc/fnss.classes.html
 	__wavelength_matrix = None   # W (3D numpy array/matrix)
 	__adjacency_matrix  = None   # A (2D numpy array/matrix)
-	__traffic_matrix    = None   # T (dict)
+	__traffic_matrix    = None   # T (dict: 3D np array + dict of dicts)
 
 	def __init__(self, ch_num, ch_free, ch_bias):
 		self.num_channels      = ch_num  # int
@@ -549,7 +549,7 @@ class NationalScienceFoundation(Network):
 
 	def get_nodes_2D_pos(self):
 		""" Get position of the nodes on the bidimensional Cartesian plan
-	
+
 			This might be useful for plotting the topology as a undirected, 
 			unweighted graph
 		"""
