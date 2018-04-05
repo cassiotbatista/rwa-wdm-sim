@@ -59,7 +59,12 @@ class Network(object):
 		# network
 		dimension = (self.num_nodes, self.num_nodes, self.num_channels)
 		time_mtx = np.zeros(dimension, dtype=np.float64)
-		t_mtx = {'time':time_mtx, 'num_calls':0} # init the number of running connections
+		# init the traffic matrix with the holding time 3D matrix, the number 
+		# of running connections and the number of λ used (channel usage)
+		t_mtx = {}
+		t_mtx['time'] = time_mtx
+		t_mtx['num_calls'] = 0
+		t_mtx['wave_usg'] = np.zeros(self.num_channels, dtype=np.uint8) 
 
 		# the percentage of occupied channels is defined by the bias parameter
 		#   nlinks * nchannels ---> 100 %             # λ total
@@ -123,6 +128,7 @@ class Network(object):
 			while r <= 0.00000000001 or r == 1.0: # I better be sure, right?
 				r = np.random.uniform()
 
+			# defines a random holding time as a exponential distribution
 			holding_time = -np.log(1-r)
 
 			# add connection to traffic matrix
@@ -136,6 +142,7 @@ class Network(object):
 				t_mtx['time'][rnext][rcurr][w] = holding_time # symmetric
 				ch_i += 1 # update channel counter
 
+			t_mtx['wave_usg'][w] += 1 # update the usage of the w channel
 			t_mtx['num_calls'] += 1 # update the number of running connections
 			route = [] # flush path to calculate a new, fresh one
 
@@ -170,6 +177,8 @@ class Network(object):
 		self.__traffic_matrix    = t_mtx
 
 	def reset_network(self):
+		""" reset all networks the their previous initial stages """
+
 		self.wave_mtx    = self.__wavelength_matrix.copy() # matrix
 		self.adj_mtx     = self.__adjacency_matrix.copy()  # matrix
 		self.traffic_mtx = self.__traffic_matrix.copy()    # dict
@@ -208,6 +217,10 @@ class Network(object):
 						self.wave_mtx[rnext][rcurr][w] = 1
 
 	def is_same_traffic_entry(self, odw_key, dow_key):
+		""" compare two dict keys from traffic matrix in order to checj whether
+		they are equal not
+		"""
+
 		if not isinstance(od_key, tuple) or not isinstance(do_key, tuple):
 			sys.stderr.write('something is wrong\n')
 			return False
@@ -293,7 +306,7 @@ class Network(object):
 class AdvancedResearchProjectsAgency(Network): 
 	""" U.S. Advanced Research Projects Agency (ARPANET) """
 	def __init__(self, ch_n, ch_f, ch_b):
-		super(AdvancedResearchProjectsAgency).__init__(ch_n, ch_f, ch_b)
+		super(AdvancedResearchProjectsAgency, self).__init__(ch_n, ch_f, ch_b)
 		self.name        = 'ARPA'
 		self.fullname    = 'Advanced Research Projects Agency'
 		self.num_nodes   = len(self.get_nodes_2D_pos())
