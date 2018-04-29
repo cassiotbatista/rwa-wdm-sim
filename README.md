@@ -8,16 +8,16 @@ This repo basically basically contains a simulator that covers the routing and
 wavelength assignment problem with the following algorithms:
 
 * Routing   
-  * Dijkstra's algorithm  
-  * Yen's algorithm (also known as K-shortest path algorithm)  
+    * Dijkstra's algorithm  
+    * Yen's algorithm (also known as K-shortest path algorithm)  
 
 * Wavelength Assignment   
-  * First-fit algorithm  
-  * Vertex coloring algorithm  
+    * First-fit algorithm  
+    * Vertex coloring algorithm  
 
 * RWA as one    
-  * General Objective Function  
-  * Genetic algorithm (ours :)  
+    * General Objective Function  
+    * Genetic algorithm (ours :)  
 
 ## Citation
 
