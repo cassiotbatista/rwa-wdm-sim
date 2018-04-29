@@ -19,6 +19,13 @@ wavelength assignment problem with the following algorithms:
      * General Objective Function  
      * Genetic algorithm (ours :)  
 
+* Item 1
+* Item 2
+* Item 3
+    * Item 3a
+    * Item 3b
+    * Item 3c
+
 ## Citation
 
 If you use this code or want to mention the paper referred above, please cite us
