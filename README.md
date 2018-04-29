@@ -19,12 +19,10 @@ wavelength assignment problem with the following algorithms:
      * General Objective Function  
      * Genetic algorithm (ours :)  
 
-* Item 1
-* Item 2
-* Item 3
-    * Item 3a
-    * Item 3b
-    * Item 3c
+* Bullet list
+    * Nested bullet
+        * Sub-nested bullet etc
+* Bullet list item 2
 
 ## Citation
 
