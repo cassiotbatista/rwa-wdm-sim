@@ -7,7 +7,7 @@ All-Optical Wavelength Division Multiplexing (WDM) Networks with Static Traffic
 This repo basically basically contains a simulator that covers the routing and
 wavelength assignment problem with the following algorithms:
 
-* Routing 
+* Routing
     * Dijkstra's algorithm  
     * Yen's algorithm (also known as K-shortest path algorithm)  
 
@@ -15,14 +15,9 @@ wavelength assignment problem with the following algorithms:
     * First-fit algorithm  
     * Vertex coloring algorithm  
 
-* RWA as one   
-     * General Objective Function  
-     * Genetic algorithm (ours :)  
-
-* Bullet list 
-     * Nested bullet
-         * Sub-nested bullet etc
-* Bullet list item 2
+* RWA as one
+   * General Objective Function  
+   * Genetic algorithm (ours :)  
 
 ## Citation
 
