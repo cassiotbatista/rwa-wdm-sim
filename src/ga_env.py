@@ -29,6 +29,21 @@ class Environment(object):
 	def __init__(self):
 		pass
 
+	# FIXME
+	def init_population(self):
+		population = [] # [ [[chrom], [L], wl_avail, r_len], ..., ]
+		trials = 0
+		while len(population) < self.GA_SIZE_POP and trials < 300:
+			allels = range(info.NSF_NUM_NODES) # router indexes
+			chromosome = make_chromosome(A, info.NSF_SOURCE_NODE, info.NSF_DEST_NODE, allels)
+			individual = [chromosome, [], 0, 0]
+			if chromosome and individual not in population:
+				population.append(individual)
+				trials = 0
+			else:
+				trials += 1
+			pass
+
 	# TODO: Create Population
 	def make_chromosome(self, adj_mtx, start_router, end_router, allels):
 		count = 0

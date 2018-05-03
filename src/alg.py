@@ -482,13 +482,31 @@ class YenFirstFit(RWAAlgorithm):
 class GeneticAlgorithm(RWAAlgorithm, Environment)
 	""" GA class """
 
-	def __init__(self):
+	def __init__(self, GA_SIZE_POP,
+					GA_MIN_GEN, GA_MAX_GEN,
+					GA_MIN_CROSS_RATE, GA_MAX_CROSS_RATE,
+					GA_MIN_MUT_RATE, GA_MAX_MUT_RATE,
+					GA_GEN_INTERVAL):
 		super(GeneticAlgorithm, self).__init__()
+		self.GA_SIZE_POP       = GA_SIZE_POP
+		self.GA_MIN_GEN        = GA_MIN_GEN
+		self.GA_MAX_GEN        = GA_MAX_GEN
+		self.GA_MIN_CROSS_RATE = GA_MIN_CROSS_RATE
+		self.GA_MAX_CROSS_RATE = GA_MAX_CROSS_RATE
+		self.GA_MIN_MUT_RATE   = GA_MIN_MUT_RATE
+		self.GA_MAX_MUT_RATE   = GA_MAX_MUT_RATE
+		self.GA_GEN_INTERVAL   = GA_GEN_INTERVAL
+
+	# FIXME FIXME FIXME
+	def rwa(self, net, orig, dest, hold_t):
+		population = self.init_population()
+		while not stop_criteria:
+			pass
 
 	# generates initial population with random but valid chromosomes
 	population = [] # [ [[chrom], [L], wl_avail, r_len], [[chrom], [L], wl_avail, r_len], ..., ]
 	trials = 0
-	while len(population) < info.GA_SIZE_POP and trials < 300:
+	while len(population) < self.GA_SIZE_POP and trials < 300:
 		allels = range(info.NSF_NUM_NODES) # router indexes
 		chromosome = make_chromosome(A, info.NSF_SOURCE_NODE, info.NSF_DEST_NODE, allels)
 		individual = [chromosome, [], 0, 0]

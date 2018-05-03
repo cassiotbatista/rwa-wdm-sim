@@ -60,15 +60,19 @@ def init_nets():
 def init_algs():
 	algs = []
 	if ALG_DFF:
-		algs.append(DijkstraFirstFit())         # 0 DFF
+		algs.append(DijkstraFirstFit())           # 0 DFF
 	if ALG_DGC:
-		algs.append(DijkstraGraphColoring())    # 1 GGC
+		algs.append(DijkstraGraphColoring())      # 1 GGC
 	if ALG_YFF:
-		algs.append(YenFirstFit(YEN_K))         # 2 YFF
+		algs.append(YenFirstFit(YEN_K))           # 2 YFF
 	if ALG_YGC:
-		algs.append(YenGraphColoring(YEN_K))    # 3 YGC
-	if ALG_GA: # FIXME I need to pass some args from config.py here
-		algs.append(GeneticAlgorithm())         # 4 GA
+		algs.append(YenGraphColoring(YEN_K))      # 3 YGC
+	if ALG_GA:
+		algs.append(GeneticAlgorithm(GA_SIZE_POP, # 4 GA
+										GA_MIN_GEN, GA_MAX_GEN,
+										GA_MIN_CROSS_RATE, GA_MAX_CROSS_RATE,
+										GA_MIN_MUT_RATE, GA_MAX_MUT_RATE,
+										GA_GEN_INTERVAL))
 	if ALG_GOF:
 		algs.append(GeneralObjectiveFunction()) # 5 GOF (alone)
 
@@ -101,7 +105,7 @@ def main():
 	if nets == [] or algs == []:
 		sys.stderr.write('Something must be wrong. ')
 		sys.stderr.write('You didn\'t start any network [n]or algorithm.\n')
-		sys.stderr.write('Take a look at NET_* or ALG_* consts in \'info.py\'.')
+		sys.stderr.write('Take a look at NET_* or ALG_* consts in \'config.py\'.')
 		sys.stderr.flush()
 		sys.exit(1)
 
