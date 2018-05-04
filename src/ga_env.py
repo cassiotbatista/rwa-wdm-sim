@@ -29,13 +29,13 @@ class Environment(object):
 	def __init__(self):
 		pass
 
-	# FIXME
-	def init_population(self):
+	# generates initial population with random but valid chromosomes
+	def init_population(self, A, num_nodes, o, d):
 		population = [] # [ [[chrom], [L], wl_avail, r_len], ..., ]
 		trials = 0
 		while len(population) < self.GA_SIZE_POP and trials < 300:
-			allels = range(info.NSF_NUM_NODES) # router indexes
-			chromosome = make_chromosome(A, info.NSF_SOURCE_NODE, info.NSF_DEST_NODE, allels)
+			allels = range(num_nodes) # router indexes
+			chromosome = make_chromosome(A, num_nodes, o, d, allels)
 			individual = [chromosome, [], 0, 0]
 			if chromosome and individual not in population:
 				population.append(individual)
@@ -43,9 +43,10 @@ class Environment(object):
 			else:
 				trials += 1
 			pass
+		return population
 
 	# TODO: Create Population
-	def make_chromosome(self, adj_mtx, start_router, end_router, allels):
+	def make_chromosome(self, adj_mtx, num_nodes, start_router, end_router, allels):
 		count = 0
 		# 1. start from source node
 		current_router = start_router
@@ -74,14 +75,12 @@ class Environment(object):
 					chromosome = False
 					break
 
-		if chromosome and len(chromosome) > info.NSF_NUM_NODES:
+		if chromosome and len(chromosome) > num_nodes:
 			chromosome = False
 
 		return chromosome
 
 	def evaluate(self, net, route):
-		""" GOF is applied here """
-
 		l = len(route)-1
 		L = [] # labels
 		for w in xrange(1, net.num_channels+1):
@@ -124,7 +123,7 @@ class Environment(object):
 		return parents
 
 	# TODO: Crossover Function
-	def cross(self, self, parents):
+	def cross(self, parents):
 		""" One Point """
 		children = []
 		while len(parents)-1 > 0:
@@ -159,7 +158,7 @@ class Environment(object):
 			return children
 
 	# TODO: Mutation Function
-	def mutate(self, nsfnet, normal_chrom):
+	def mutate(self, adj_mtx, normal_chrom):
 		# DO NOT perform mutation if:
 		# route has only one link which directly connects source to target
 		if len(normal_chrom) == 2:
@@ -183,7 +182,7 @@ class Environment(object):
 		allels += [a for a in range(info.NSF_NUM_NODES) if a not in trans_chrom]
 
 		# create a new route R from mutation point to target node
-		R = make_chromosome(nsfnet, start_router, end_router, allels)
+		R = make_chromosome(adj_mtx, start_router, end_router, allels)
 
 		# check if new route/path is valid
 		if R:

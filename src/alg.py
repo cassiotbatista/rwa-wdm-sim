@@ -114,7 +114,7 @@ class WavelengthAssignment(object):
 				# 0 1 3 4   [9 12]
 				if p[0][r[0]-1] == p[1][r[1]-1] and p[0][r[0]] == p[1][r[1]]:
 					return True
-				# check reversely equal links: qraph is bidirectional
+				# check reversely equal links: graph is bidirectional
 				# 0     [5 6]  7  8 9 12
 				# 0 1 3 [6 5] 10 12
 				elif p[0][r[0]] == p[1][r[1]-1] and p[0][r[0]-1] == p[1][r[1]]:
@@ -194,7 +194,7 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 
 	def __init__(self):
 		super(RWAAlgorithm, self).__init__()
-		self.block_count = [] # to store the number of blocked calls
+		self.block_count = {} # to store the number of blocked calls
 		self.block_dict  = {} # store percentage of blocked calls per generation
 
 	def is_wave_available(self, wave_mtx, route, wavelength):
@@ -240,13 +240,11 @@ class RWAAlgorithm(Routing, WavelengthAssignment):
 
 	# https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.append.html
 	def save_erlang_blocks(self, net_key, net_num_nodes, total_calls):
-		""" This does something """
-
 		for node in xrange(net_num_nodes):
 			# compute a percentage of blocking probability per Erlang
-			block_prob_per_erlang = 100.0 * self.block_count[node] / total_calls 
+			bp_per_erlang = 100.0 * self.block_count[net_key][node] / total_calls 
 			self.block_dict[net_key][node] = np.append(
-					self.block_dict[net_key][node], block_prob_per_erlang)
+					self.block_dict[net_key][node], bp_per_erlang)
 
 	# https://docs.scipy.org/doc/numpy-1.14.0/reference/generated/numpy.savetxt.html
 	# numpy append to file with savetxt() - https://stackoverflow.com/q/27786868
@@ -497,105 +495,61 @@ class GeneticAlgorithm(RWAAlgorithm, Environment)
 		self.GA_MAX_MUT_RATE   = GA_MAX_MUT_RATE
 		self.GA_GEN_INTERVAL   = GA_GEN_INTERVAL
 
-	# FIXME FIXME FIXME
 	def rwa(self, net, orig, dest, hold_t):
-		population = self.init_population()
+		population = self.init_population(net.adj_mtx, net.num_nodes, orig, dest)
+		fits = []
 		while not stop_criteria:
-			pass
+			# perform evaluation (fitness calculation)
+			for ind in xrange(len(population)):
+				L, wl_avail, r_len = self.evaluate(net, population[ind][0])
+				population[ind][1] = L
+				population[ind][2] = wl_avail
+				population[ind][3] = r_len
 
-	# generates initial population with random but valid chromosomes
-	population = [] # [ [[chrom], [L], wl_avail, r_len], [[chrom], [L], wl_avail, r_len], ..., ]
-	trials = 0
-	while len(population) < self.GA_SIZE_POP and trials < 300:
-		allels = range(info.NSF_NUM_NODES) # router indexes
-		chromosome = make_chromosome(A, info.NSF_SOURCE_NODE, info.NSF_DEST_NODE, allels)
-		individual = [chromosome, [], 0, 0]
-		if chromosome and individual not in population:
-			population.append(individual)
-			trials = 0
-		else:
-			trials += 1
+			# perform selection
+			mating_pool = self.select(list(population), self.GA_MAX_CROSS_RATE)
 
-	fits = []
-	# <GeneticAlgorithm> ------------------------------------------------------
-	for generation in range(info.GA_MIN_GEN):
+			# perform crossover
+			offspring = self.cross(mating_pool)
+			if offspring:
+				for child in offspring:
+					population.pop()
+					population.insert(0, [child, [], 0, 0])
+
+			# perform mutation
+			for i in xrange(int(math.ceil(self.GA_MIN_MUT_RATE*len(population)))):
+				normal_ind = random.choice(population)
+				trans_ind = self.mutate(net.adj_mtx, normal_ind[0]) # X MEN
+				if trans_ind != normal_ind:
+					population.remove(normal_ind)
+					population.insert(0, [trans_ind, [], 0, 0])
+
+			# sort population according to length .:. shortest paths first
+			population.sort(key=itemgetter(2), reverse=True)
+
+			# sort population according to wavelength availability
+			population = self.insertion_sort(population)
+
 		# perform evaluation (fitness calculation)
 		for ind in xrange(len(population)):
 			L, wl_avail, r_len = evaluate(population[ind][0], N)
-			population[ind][1] = L
-			population[ind][2] = wl_avail
-			population[ind][3] = r_len
+			population[ind][1]  = L
+			population[ind][2]  = wl_avail
+			population[ind][3]  = r_len
 
-		# perform selection
-		mating_pool = select(list(population), info.GA_MAX_CROSS_RATE)
-
-		# perform crossover
-		offspring = cross(mating_pool)
-		if offspring:
-			for child in offspring:
-				population.pop()
-				population.insert(0, [child, [], 0, 0])
-
-		# perform mutation
-		for i in xrange(int(math.ceil(info.GA_MIN_MUT_RATE*len(population)))):
-			normal_ind = random.choice(population)
-			trans_ind = mutate(N, normal_ind[0]) # X MEN
-			if trans_ind != normal_ind:
-				population.remove(normal_ind)
-				population.insert(0, [trans_ind, [], 0, 0])
-
-		# rearrange: sort population according to length .:. shortest paths first
+		# sort population according to length: shortest paths first
 		population.sort(key=itemgetter(2), reverse=True)
 
 		# sort population according to wavelength availability
-		population = insertion_sort(population)
+		population = self.insertion_sort(population)
+		
+		# update NSF graph
+		route = population[0][0]
+		if population[0][2] > 0:
+			wavelength = population[0][1].index(1)
+			self.alloc_net_resources(net, route, orig, dest, wavelength, hold_t)
+			return 0 # allocated
 
-		fit = 0
-		for ind in population:
-			if ind[2]:
-				fit += 1
-		fits.append(fit)
-
-		#print generation, population[0]
-	# </GeneticAlgorithm> -----------------------------------------------------
-
-	# perform evaluation (fitness calculation)
-	for ind in xrange(len(population)):
-		L, wl_avail, r_len = evaluate(population[ind][0], N)
-		population[ind][1]  = L
-		population[ind][2]  = wl_avail
-		population[ind][3]  = r_len
-
-	# sort population according to length: shortest paths first
-	population.sort(key=itemgetter(2), reverse=True)
-
-	# sort population according to wavelength availability
-	population = insertion_sort(population)
-	
-	fit = 0
-	for ind in population:
-		if ind[2]:
-			fit += 1
-	fits.append(fit)
-
-	# update NSF graph
-	best_route = population[0][0]
-	len_route  = population[0][3]
-	
-	if population[0][2] > 0:
-		color = population[0][1].index(1)
-		for i in xrange(len_route-1):
-			rcurr = best_route[i]
-			rnext = best_route[i+1]
-
-			N[rcurr][rnext] -= 2**color
-			N[rnext][rcurr] = N[rcurr][rnext] # make it symmetric
-
-			T[rcurr][rnext][color] = hold_t
-			T[rnext][rcurr][color] = T[rcurr][rnext][color]
-
-		return 0 # allocated
-	else:
 		return 1 # blocked
 
 ### EOF ###

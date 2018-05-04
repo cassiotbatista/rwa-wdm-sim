@@ -109,21 +109,23 @@ def main():
 		sys.stderr.flush()
 		sys.exit(1)
 
-	# init the block array for each topology, considerind each and every node of
-	# the topology as an eventual origin node
+	# init all networks
 	for n in nets:
 		n.init_network()
-		for a in algs:
-			a.block_dict[n.name] = {}
-			for node in range(n.num_nodes):              # e.g.: cur node = 2
-				a.block_count.append(0)                  # list[2]        = 0
-				a.block_dict[n.name][node] = np.empty(0) # dict['nsf'][2] = 0.0
 
 	# define the load in Erlangs
 	for load in xrange(SIM_MIN_LOAD, SIM_MAX_LOAD):
 		# reset all networks to the inital state
 		for n in nets:
 			n.reset_network()
+			# init the block array for each topology, considering each and every
+			# node of the topology as an eventual origin node
+			for a in algs:
+				a.block_count[n.name] = []
+				a.block_dict[n.name]  = {}
+				for node in range(n.num_nodes):              # e.g.: cur node = 2
+					a.block_count[n.name].append(0)          # list['nsf'][2] = 0
+					a.block_dict[n.name][node] = np.empty(0) # dict['nsf'][2] = 0.0
 
 		# call requests arrival
 		for call in xrange(SIM_NUM_CALLS):
@@ -135,7 +137,7 @@ def main():
 			for n in nets:
 				o, d = gen_od_pair(n)
 				for a in algs:
-					a.block_count[o] += a.rwa(n, o, d, holding_time)
+					a.block_count[n.name][o] += a.rwa(n, o, d, holding_time)
 
 			if DEGUB:
 				sys.stdout.write('\rLoad: %2d/%2d Simul: %4d/%4d\t' % (load,
