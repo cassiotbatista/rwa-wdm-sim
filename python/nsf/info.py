@@ -17,7 +17,7 @@
 # Last edited on March, 2017
 
 # Debug Parameters
-DEBUG = False
+DEBUG = True
 
 # Simulation Parameters
 SIM_NUM_GEN = 150
