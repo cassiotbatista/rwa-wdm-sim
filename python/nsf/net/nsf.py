@@ -17,17 +17,14 @@
 # Last revised on June 2020
 
 
-import sys
-#reload(sys)  
-#sys.setdefaultencoding('utf8') # for plot in PT_BR
-
-import info
 import random
 import numpy as np
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as anim
 from matplotlib.ticker import EngFormatter
+
+import info
 
 
 def generate():
@@ -78,8 +75,8 @@ def plot_fits(fits):
     ax.set_xscale('linear')
     formatter = EngFormatter(unit='', places=1)
     ax.xaxis.set_major_formatter(formatter)
-    ax.set_xlabel(u'Gerações', fontsize=20)
-    ax.set_ylabel(u'Número de chamadas atendidas', fontsize=20)
+    ax.set_xlabel(u'Generations', fontsize=20)
+    ax.set_ylabel(u'Number of attended calls', fontsize=20)
 
     ax.grid()
     ax.plot(fits, linewidth=2.0)
@@ -87,7 +84,7 @@ def plot_fits(fits):
     x = range(0, info.GA_MAX_GEN, 5)
     y = np.arange(0, 8, 1)
 
-    fig.suptitle(u'Melhores Fits de %d Indivíduos por Geração'\
+    fig.suptitle(u'Best fits of %d individuals per generation'\
                 % info.GA_SIZE_POP, fontsize=20)
     #plt.margins(0.02)
     plt.subplots_adjust(bottom=0.12)
@@ -161,15 +158,15 @@ def plot_graph(bestroute=False):
         else:
             corr = 0.085
 
-        plt.plot(node[0], node[1], 'wo', markersize=25)
+        plt.plot(node[0], node[1], 'wo', ms=25, mec='k')
 
         # write node index on the center of the node
         ax.annotate(str(i), xy=(node[0]-corr, node[1]-corr))
         i += 1
-    
+
     plt.xticks(np.arange(0, 9, 1))
     plt.yticks(np.arange(0, 7, 1))
     plt.show(block=True)
 
-#def nsfnet_generator_recover():
-#''.join( [random.choice((0,1)) for i in range(info.NSF_NUM_NODES)] )
+if __name__ == '__main__':
+    plot_graph()

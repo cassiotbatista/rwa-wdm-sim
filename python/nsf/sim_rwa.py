@@ -9,33 +9,58 @@
 # Copyright 2017 Universidade Federal do Pará (PPGCC UFPA)
 #
 # Authors: April 2017
-# Cassio Trindade Batista - cassio.batista.13@gmail.com
+# Cassio Batista - https://cassota.gitlab.io/
 
 # Last revised on June 2020
 
 # REFERENCES:
-# [1] 
-# Afonso Jorge F. Cardoso et. al., 2010
+# [1] Afonso Jorge F. Cardoso et. al., 2010
 # A New Proposal of an Efficient Algorithm for Routing and Wavelength 
 # Assignment (RWA) in Optical Networks
+# [2] https://la.mathworks.com/matlabcentral/fileexchange/4797-wdm-network-blocking-computation-toolbox
 
 import sys
+import os
+import numpy as np
+import matplotlib.pyplot as plt
 
 import info
-import nsf
+from net import nsf
+from rwa.ga import rwa_ga                  # genetic algorithm + gof
+from rwa.fixed import rwa_fix              # dijkstra + first fit
+from rwa.std_fixed import rwa_std_fix      # dijkstra + graph coloring
+from rwa.alternate import rwa_alt          # yen + first fit
+from rwa.std_alternate import rwa_std_alt  # yen + graph coloring
 
-import numpy as np
-
-from rwa_ga import rwa_ga
-
-from rwa_std_fix import rwa_std_fix
-from rwa_std_alt import rwa_std_alt
-
-from rwa_alt import rwa_alt
-from rwa_fix import rwa_fix
 
 def get_wave_availability(k, n):
     return (int(n) & ( 1 << k )) >> k
+
+def write_results_to_disk(dictmap):
+    if not os.path.isdir(info.RESULTS_DIR):
+        os.mkdir(info.RESULTS_DIR)
+    for filename, blocklist in dictmap.items():
+        with open(os.path.join(info.RESULTS_DIR, filename), 'a') as f:
+            for b in blocklist:
+                f.write(' %7.3f' % b)
+            f.write('\n')
+
+def plot_result_graphs(filelist):
+    for f in filelist:
+        data = np.loadtxt(os.path.join(info.RESULTS_DIR, f))
+        if data.ndim == 1:
+            plt.plot(data)
+        else:
+            plt.plot(data.mean(axis=0))
+        if data.ndim == 1 or data.shape[0] < 10:
+            print(f, data.shape, end=' ')
+            print('remember you should simulate at least 10 times')
+    plt.grid()
+    plt.ylabel('Blocking probability (%)', fontsize=18)
+    plt.xlabel('Load (Erlangs)', fontsize=18)
+    plt.title('Average mean blocking probability', fontsize=20)
+    plt.legend(filelist)
+    plt.show(block=True)
 
 if __name__ == '__main__':
 
@@ -47,11 +72,13 @@ if __name__ == '__main__':
     blocked_alt = []
     blocked_fix = []
 
-    if info.DEBUG:
+    # should comment this
+    if False and info.DEBUG:
         print(nsf_wave)
 
+    # ascending loop through Erlangs
     for load in range(info.SIM_MIN_LOAD, info.SIM_MAX_LOAD):
-        N_ga  = nsf_wave.copy()
+        N_ga = nsf_wave.copy()
         N_std_fix = nsf_wave.copy()
         N_std_alt = nsf_wave.copy()
         N_alt = nsf_wave.copy()
@@ -62,20 +89,25 @@ if __name__ == '__main__':
         T_std_alt = nsf_time.copy() # holding time
         T_alt = nsf_time.copy() # holding time
         T_fix = nsf_time.copy() # holding time
-    
+
         paths_fix = []
         paths_alt = []
 
-        count_block_ga  = 0
+        count_block_ga = 0
         count_block_std_fix = 0
         count_block_std_alt = 0
         count_block_alt = 0
         count_block_fix = 0
 
         for gen in range(info.SIM_NUM_GEN):
-            until_next   = -np.log(1-np.random.rand())/load
+
+            # Poisson arrival is here modelled as an exponential distribution
+            # of times, according to Pawełczak MATLAB package [2]:
+            # @until_next: time until next call arrives
+            # @holding_time: time an allocated call occupies net resources
+            until_next   = -np.log(1-np.random.rand())/load 
             holding_time = -np.log(1-np.random.rand())
-    
+
             count_block_ga  += rwa_ga(N_ga,  nsf_adj, T_ga,  holding_time)
             count_block_std_fix += rwa_std_fix(N_std_fix, nsf_adj, T_std_fix, holding_time, paths_fix)
             count_block_std_alt += rwa_std_alt(N_std_alt, nsf_adj, T_std_alt, holding_time, paths_alt)
@@ -91,10 +123,10 @@ if __name__ == '__main__':
                 sys.stdout.write('ALT: %04d, ' % count_block_alt)
                 sys.stdout.write('FIX: %04d '  % count_block_fix)
                 sys.stdout.flush()
-    
+
             aux_fix = {idx:[] for idx in range(info.NSF_NUM_CHANNELS)}
             aux_alt = {idx:[] for idx in range(info.NSF_NUM_CHANNELS)}
-            # Atualiza os todos os canais que ainda estao sendo usados 
+            # Update all channels that are still in use
             for link in nsf_links:
                 i, j = link
                 for w in range(info.NSF_NUM_CHANNELS):
@@ -194,7 +226,7 @@ if __name__ == '__main__':
             while len(pop_alt):
                 paths_alt.pop(pop_alt.pop())
 
-        blocked_ga.append( 100.0*count_block_ga /info.SIM_NUM_GEN)
+        blocked_ga.append(100.0*count_block_ga/info.SIM_NUM_GEN)
         blocked_std_fix.append(100.0*count_block_std_fix/info.SIM_NUM_GEN)
         blocked_std_alt.append(100.0*count_block_std_alt/info.SIM_NUM_GEN)
         blocked_alt.append(100.0*count_block_alt/info.SIM_NUM_GEN)
@@ -202,28 +234,18 @@ if __name__ == '__main__':
         print('Done')
 
     if info.DEBUG:
-        print('\tGA:  ', blocked_ga)
-        print('\tSTF: ', blocked_std_fix)
-        print('\tSTA: ', blocked_std_alt)
-        print('\tALT: ', blocked_alt)
-        print('\tFIX: ', blocked_fix)
+        print('Results for this simulation:')
+        print('  GA: ', ' '.join(['%6.2f' % b for b in blocked_ga]))
+        print('  STF:', ' '.join(['%6.2f' % b for b in blocked_std_fix]))
+        print('  STA:', ' '.join(['%6.2f' % b for b in blocked_std_alt]))
+        print('  ALT:', ' '.join(['%6.2f' % b for b in blocked_alt]))
+        print('  FIX:', ' '.join(['%6.2f' % b for b in blocked_fix]))
 
-    with open('block_GA_%d.m' % info.NSF_NUM_CHANNELS, 'a') as f:
-        text = str(blocked_ga).replace('[','').replace(']','')
-        f.write('%s; ...\n' % text)
+    # easy association between filenames and block list data structures
+    f_ds = {'ga.txt': blocked_ga,
+            'fix.txt': blocked_fix, 'alt.txt': blocked_alt,
+            'std_fix.txt': blocked_std_fix, 'std_alt.txt': blocked_std_alt }
 
-    with open('block_STF_%d.m' % info.NSF_NUM_CHANNELS, 'a') as f:
-        text = str(blocked_std_fix).replace('[','').replace(']','')
-        f.write('%s; ...\n' % text)
-
-    with open('block_STA_%d.m' % info.NSF_NUM_CHANNELS, 'a') as f:
-        text = str(blocked_std_alt).replace('[','').replace(']','')
-        f.write('%s; ...\n' % text)
-
-    with open('block_ALT_%d.m' % info.NSF_NUM_CHANNELS, 'a') as f:
-        text = str(blocked_alt).replace('[','').replace(']','')
-        f.write('%s; ...\n' % text)
-
-    with open('block_FIX_%d.m' % info.NSF_NUM_CHANNELS, 'a') as f:
-        text = str(blocked_fix).replace('[','').replace(']','')
-        f.write('%s; ...\n' % text)
+    write_results_to_disk(f_ds)
+    if info.PLOT_RESULTS:
+        plot_result_graphs(f_ds.keys())

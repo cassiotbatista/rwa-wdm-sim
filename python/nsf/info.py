@@ -18,20 +18,24 @@
 
 # Debug Parameters
 DEBUG = True
+RESULTS_DIR = './results'
+PLOT_RESULTS = True
 
 # Simulation Parameters
-SIM_NUM_GEN = 150
+SIM_NUM_GEN = 150         # this represents the number of calls (connection
+                          # requests) arriving at the system to be either
+                          # attended of blocked by our RWA algorithms
 
-SIM_MIN_LOAD = 1
-SIM_MAX_LOAD = 31
+SIM_MIN_LOAD = 1          # first Erlang value (closed interval)
+SIM_MAX_LOAD = 21         # last Erlang value (open interval)
 
 # NSF Parameters
-NSF_SOURCE_NODE   = 0  # source
-NSF_DEST_NODE     = 12 # destination node
-NSF_NUM_NODES     = 14 # number of nodes on NSF network
+NSF_SOURCE_NODE  = 0      # source for all cals
+NSF_DEST_NODE    = 12     # destination node
+NSF_NUM_NODES    = 14     # number of nodes on NSF network
 
-NSF_NUM_CHANNELS  = 8      # total number of wavelengths available
-NSF_CHANNEL_FREE  = False  # init all link wavelengths available at once?
+NSF_NUM_CHANNELS = 8      # total number of wavelengths available
+NSF_CHANNEL_FREE = False  # init all link wavelengths available at once?
 
 # Genetic Algorithm Parameters
 GA_SIZE_POP       = 30    # size of the population of each species
@@ -44,8 +48,6 @@ GA_MAX_CROSS_RATE = 0.40  # max crossover rate
 
 GA_MIN_MUT_RATE   = 0.02  # min mutation rate
 GA_MAX_MUT_RATE   = 0.20  # max mutation rate
-
-GA_GEN_INTERVAL   = 8    # interval to update rates
 
 # Yen's Algorithm Parameters
 K = 2

@@ -20,7 +20,7 @@
 # Assignment (RWA) in Optical Networks
 
 import info
-import nsf
+from net import nsf
 
 from operator import itemgetter
 
@@ -116,7 +116,7 @@ def cross(parents):
         dad = random.choice(parents)
         mom = random.choice(parents)
         parents.remove(dad)
-        
+
         # avoid crossing twins: check if parents are the same individual
         for i in range(10):
             if dad == mom:
@@ -261,7 +261,7 @@ def rwa_ga(N, A, T, holding_time):
 
     # sort population according to wavelength availability
     population = insertion_sort(population)
-    
+
     fit = 0
     for ind in population:
         if ind[2]:
@@ -271,7 +271,7 @@ def rwa_ga(N, A, T, holding_time):
     # update NSF graph
     best_route = population[0][0]
     len_route  = population[0][3]
-    
+
     if population[0][2] > 0:
         color = population[0][1].index(1)
         for i in range(len_route-1):
