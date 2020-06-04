@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # vim: set fileencoding=utf-8
 #
@@ -11,7 +11,7 @@
 # Authors: April 2016
 # Cassio Trindade Batista - cassio.batista.13@gmail.com
 
-# Last revised on April, 2017
+# Last revised on June, 2020
 
 # REFERENCES:
 # [1] 
@@ -69,9 +69,9 @@ def evaluate(R, N):
 
     l = len(R)-1
     L = []
-    for w in xrange(1, info.NSF_NUM_CHANNELS+1):
+    for w in range(1, info.NSF_NUM_CHANNELS+1):
         num = 0
-        for i in xrange(l):
+        for i in range(l):
             rcurr = R[i]
             rnext = R[i+1]
             num += w * get_wave_availability(w-1, N[rcurr][rnext])
@@ -95,7 +95,7 @@ def select(population, Tc, times=3):
         # it pops because it cannot be selected twice
         candidate = [random.choice(population)]
         if Tc > random.random():
-            for tourn_times in xrange(times):
+            for tourn_times in range(times):
                 # choose another candidate and compare two fitnesses
                 # the winner becomes the top candidate; loser is eliminated
                 candidate.append(random.choice(population))
@@ -119,7 +119,7 @@ def cross(parents):
         parents.remove(dad)
         
         # avoid crossing twins: check if parents are the same individual
-        for i in xrange(10):
+        for i in range(10):
             if dad == mom:
                 mom = random.choice(parents)
             else:
@@ -160,7 +160,7 @@ def mutate(nsfnet, normal_chrom):
     end_router   = trans_chrom.pop()
 
     # remove all genes after mutation point
-    for gene in xrange(geneid, len(trans_chrom)):
+    for gene in range(geneid, len(trans_chrom)):
         trans_chrom.pop()
 
     # alphabet: graph vertices that are not in genes before mutation point
@@ -180,7 +180,7 @@ def mutate(nsfnet, normal_chrom):
 
 # [[chrom], [L], wl_avail, r_len]
 def insertion_sort(A):
-    for j in xrange(1, len(A)):
+    for j in range(1, len(A)):
         R = A[j]
 
         i = j-1
@@ -198,7 +198,7 @@ def rwa_ga(N, A, T, holding_time):
     population = [] # [ [[chrom], [L], wl_avail, r_len], [[chrom], [L], wl_avail, r_len], ..., ]
     trials = 0
     while len(population) < info.GA_SIZE_POP and trials < 300:
-        allels = range(info.NSF_NUM_NODES) # router indexes
+        allels = list(range(info.NSF_NUM_NODES)) # router indexes
         chromosome = make_chromosome(A, info.NSF_SOURCE_NODE, info.NSF_DEST_NODE, allels)
         individual = [chromosome, [], 0, 0]
         if chromosome and individual not in population:
@@ -211,7 +211,7 @@ def rwa_ga(N, A, T, holding_time):
     # <GeneticAlgorithm> ------------------------------------------------------
     for generation in range(info.GA_MIN_GEN):
         # perform evaluation (fitness calculation)
-        for ind in xrange(len(population)):
+        for ind in range(len(population)):
             L, wl_avail, r_len = evaluate(population[ind][0], N)
             population[ind][1] = L
             population[ind][2] = wl_avail
@@ -228,7 +228,7 @@ def rwa_ga(N, A, T, holding_time):
                 population.insert(0, [child, [], 0, 0])
 
         # perform mutation
-        for i in xrange(int(math.ceil(info.GA_MIN_MUT_RATE*len(population)))):
+        for i in range(int(math.ceil(info.GA_MIN_MUT_RATE*len(population)))):
             normal_ind = random.choice(population)
             trans_ind = mutate(N, normal_ind[0]) # X MEN
             if trans_ind != normal_ind:
@@ -251,7 +251,7 @@ def rwa_ga(N, A, T, holding_time):
     # </GeneticAlgorithm> -----------------------------------------------------
 
     # perform evaluation (fitness calculation)
-    for ind in xrange(len(population)):
+    for ind in range(len(population)):
         L, wl_avail, r_len = evaluate(population[ind][0], N)
         population[ind][1]  = L
         population[ind][2]  = wl_avail
@@ -275,7 +275,7 @@ def rwa_ga(N, A, T, holding_time):
     
     if population[0][2] > 0:
         color = population[0][1].index(1)
-        for i in xrange(len_route-1):
+        for i in range(len_route-1):
             rcurr = best_route[i]
             rnext = best_route[i+1]
 
@@ -288,5 +288,3 @@ def rwa_ga(N, A, T, holding_time):
         return 0 # allocated
     else:
         return 1 # blocked
-
-### EOF ###

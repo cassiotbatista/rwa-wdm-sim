@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # vim: set fileencoding=utf-8
 #
@@ -11,7 +11,7 @@
 # Authors: Apr 2017
 # Cassio Trindade Batista - cassio.batista.13@gmail.com
 
-# Last revised on Apr 2017
+# Last revised on June 2020
 
 # REFERENCES:
 # [1] 
@@ -24,9 +24,9 @@ import info
 import networkx as nx
 
 # https://networkx.github.io/documentation/networkx-1.10/reference/algorithms.simple_paths.html
-def yen(mat, (s,d), k):
+def yen(mat, s, d, k):
     if any([s,d])<0 or any([s,d])>mat.shape[0] or k<0:
-        print 'Error'
+        print('Error')
         return None
     G = nx.from_numpy_matrix(mat, create_using=nx.Graph())
     paths = list(nx.shortest_simple_paths(G, s, d, weight=None))
@@ -36,16 +36,14 @@ def get_wave_availability(k, n):
     return (int(n) & ( 1 << k )) >> k
 
 def rwa_alt(N, A, T, holding_time):
-    SD = (info.NSF_SOURCE_NODE, info.NSF_DEST_NODE)
-
     # alternate k shortest paths
-    routes = yen(A, SD, info.K)
+    routes = yen(A, info.NSF_SOURCE_NODE, info.NSF_DEST_NODE, info.K)
 
     ## GLOBAL KNOWLEDGE first fit wavelength assignment
     #color = None
     #for R in routes:
     #    avail = 2**info.NSF_NUM_CHANNELS-1
-    #    for r in xrange(len(R)-1):
+    #    for r in range(len(R)-1):
     #        rcurr = R[r]
     #        rnext = R[r+1]
 
@@ -64,7 +62,7 @@ def rwa_alt(N, A, T, holding_time):
         color = None
         rcurr, rnext = R[0], R[1] # get the first two nodes from route R
         # Check whether each wavelength ...
-        for w in xrange(info.NSF_NUM_CHANNELS):
+        for w in range(info.NSF_NUM_CHANNELS):
             # ... is available on the first link of route R
             if get_wave_availability(w, N[rcurr][rnext]):
                 color = w
@@ -73,7 +71,7 @@ def rwa_alt(N, A, T, holding_time):
         if color is not None:
             # LOCAL KNOWLEDGE assure the color chosen at the first link is
             # availble on all links of the route R
-            for r in xrange(len(R)-1):
+            for r in range(len(R)-1):
                 rcurr = R[r]
                 rnext = R[r+1]
 
@@ -85,7 +83,7 @@ def rwa_alt(N, A, T, holding_time):
             if color is not None:
                 # if available on all links of R, alloc net resources for the
                 # call
-                for r in xrange(len(R)-1):
+                for r in range(len(R)-1):
                     rcurr = R[r]
                     rnext = R[r+1]
 
@@ -98,5 +96,3 @@ def rwa_alt(N, A, T, holding_time):
                 return 0 # allocated
 
     return 1 # blocked
-
-### EOF ###

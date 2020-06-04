@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # vim: set fileencoding=utf-8
 #
@@ -11,7 +11,7 @@
 # Authors: April 2017
 # Cassio Trindade Batista - cassio.batista.13@gmail.com
 
-# Last revised on Apr 2017
+# Last revised on June 2020
 
 # REFERENCES:
 # [1] 
@@ -48,9 +48,9 @@ if __name__ == '__main__':
     blocked_fix = []
 
     if info.DEBUG:
-        print nsf_wave
+        print(nsf_wave)
 
-    for load in xrange(info.SIM_MIN_LOAD, info.SIM_MAX_LOAD):
+    for load in range(info.SIM_MIN_LOAD, info.SIM_MAX_LOAD):
         N_ga  = nsf_wave.copy()
         N_std_fix = nsf_wave.copy()
         N_std_alt = nsf_wave.copy()
@@ -72,7 +72,7 @@ if __name__ == '__main__':
         count_block_alt = 0
         count_block_fix = 0
 
-        for gen in xrange(info.SIM_NUM_GEN):
+        for gen in range(info.SIM_NUM_GEN):
             until_next   = -np.log(1-np.random.rand())/load
             holding_time = -np.log(1-np.random.rand())
     
@@ -92,12 +92,12 @@ if __name__ == '__main__':
                 sys.stdout.write('FIX: %04d '  % count_block_fix)
                 sys.stdout.flush()
     
-            aux_fix = {idx:[] for idx in xrange(info.NSF_NUM_CHANNELS)}
-            aux_alt = {idx:[] for idx in xrange(info.NSF_NUM_CHANNELS)}
+            aux_fix = {idx:[] for idx in range(info.NSF_NUM_CHANNELS)}
+            aux_alt = {idx:[] for idx in range(info.NSF_NUM_CHANNELS)}
             # Atualiza os todos os canais que ainda estao sendo usados 
             for link in nsf_links:
                 i, j = link
-                for w in xrange(info.NSF_NUM_CHANNELS):
+                for w in range(info.NSF_NUM_CHANNELS):
 
                     # GA + GOF
                     if  T_ga[i][j][w] > until_next:
@@ -164,7 +164,7 @@ if __name__ == '__main__':
                 count = 0
                 if color == None:
                     continue
-                for r in xrange(len(R)-1):
+                for r in range(len(R)-1):
                     rcurr = R[r]
                     rnext = R[r+1]
                     if (rcurr,rnext) in aux_fix[color]:
@@ -182,7 +182,7 @@ if __name__ == '__main__':
                 count = 0
                 if color == None:
                     continue
-                for r in xrange(len(R)-1):
+                for r in range(len(R)-1):
                     rcurr = R[r]
                     rnext = R[r+1]
                     if (rcurr,rnext) in aux_alt[color]:
@@ -199,33 +199,31 @@ if __name__ == '__main__':
         blocked_std_alt.append(100.0*count_block_std_alt/info.SIM_NUM_GEN)
         blocked_alt.append(100.0*count_block_alt/info.SIM_NUM_GEN)
         blocked_fix.append(100.0*count_block_fix/info.SIM_NUM_GEN)
-        print 'Done'
+        print('Done')
 
     if info.DEBUG:
-        print '\tGA:  ', blocked_ga
-        print '\tSTF: ', blocked_std_fix
-        print '\tSTA: ', blocked_std_alt
-        print '\tALT: ', blocked_alt
-        print '\tFIX: ', blocked_fix
-    
+        print('\tGA:  ', blocked_ga)
+        print('\tSTF: ', blocked_std_fix)
+        print('\tSTA: ', blocked_std_alt)
+        print('\tALT: ', blocked_alt)
+        print('\tFIX: ', blocked_fix)
+
     with open('block_GA_%d.m' % info.NSF_NUM_CHANNELS, 'a') as f:
         text = str(blocked_ga).replace('[','').replace(']','')
         f.write('%s; ...\n' % text)
-    
+
     with open('block_STF_%d.m' % info.NSF_NUM_CHANNELS, 'a') as f:
         text = str(blocked_std_fix).replace('[','').replace(']','')
         f.write('%s; ...\n' % text)
-    
+
     with open('block_STA_%d.m' % info.NSF_NUM_CHANNELS, 'a') as f:
         text = str(blocked_std_alt).replace('[','').replace(']','')
         f.write('%s; ...\n' % text)
-    
+
     with open('block_ALT_%d.m' % info.NSF_NUM_CHANNELS, 'a') as f:
         text = str(blocked_alt).replace('[','').replace(']','')
         f.write('%s; ...\n' % text)
-    
+
     with open('block_FIX_%d.m' % info.NSF_NUM_CHANNELS, 'a') as f:
         text = str(blocked_fix).replace('[','').replace(']','')
         f.write('%s; ...\n' % text)
-
-### EOF ###

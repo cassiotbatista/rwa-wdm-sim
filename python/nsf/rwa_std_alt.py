@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # vim: set fileencoding=utf-8
 #
@@ -11,7 +11,7 @@
 # Authors: Jan 2017
 # Cassio Trindade Batista - cassio.batista.13@gmail.com
 
-# Last revised on Apr 2017
+# Last revised on June 2020
 
 # REFERENCES:
 # [1] 
@@ -27,9 +27,9 @@ import numpy as np
 import networkx as nx
 
 # https://networkx.github.io/documentation/networkx-1.10/reference/algorithms.simple_paths.html
-def yen(mat, (s,d), k):
+def yen(mat, s, d, k):
     if any([s,d])<0 or any([s,d])>mat.shape[0] or k<0:
-        print 'Error'
+        print('Error')
         return None
     G = nx.from_numpy_matrix(mat, create_using=nx.Graph())
     paths = list(nx.shortest_simple_paths(G, s, d, weight=None))
@@ -65,19 +65,17 @@ def get_wave_availability(k, n):
     return (int(n) & ( 1 << k )) >> k
 
 def rwa_std_alt(N, A, T, holding_time, paths):
-    SD = (info.NSF_SOURCE_NODE, info.NSF_DEST_NODE)
-
-    routes = yen(A, SD, info.K)
+    routes = yen(A, info.NSF_SOURCE_NODE, info.NSF_DEST_NODE, info.K)
 
     for R in routes:
         paths.append([R, None])
 
         H = np.zeros((len(paths), len(paths)), dtype=np.int)
         if len(paths) > 1:
-            for i in xrange(len(paths)): # cross compare paths on i and j
-                for j in xrange(i+1, len(paths)):
-                    for m in xrange(1,len(paths[i][0])): # cross compare routers on m and n
-                        for n in xrange(1,len(paths[j][0])):
+            for i in range(len(paths)): # cross compare paths on i and j
+                for j in range(i+1, len(paths)):
+                    for m in range(1,len(paths[i][0])): # cross compare routers on m and n
+                        for n in range(1,len(paths[j][0])):
                             if (paths[i][0][m-1] == paths[j][0][n-1] and \
                                 paths[i][0][m]   == paths[j][0][n]) \
                                 or \
@@ -87,14 +85,14 @@ def rwa_std_alt(N, A, T, holding_time, paths):
                                 H[j][i] = 1
 
         colors = {}
-        for i in xrange(len(paths)):
+        for i in range(len(paths)):
             if paths[i][1] is not None:
                 colors[i] = paths[i][1]
 
         color = greedy_color(H, colors)
 
         if color < info.NSF_NUM_CHANNELS:
-            for r in xrange(len(R)-1):
+            for r in range(len(R)-1):
                 rcurr = R[r]
                 rnext = R[r+1]
 
@@ -106,7 +104,7 @@ def rwa_std_alt(N, A, T, holding_time, paths):
 
         # update NSF graph
         if color is not None:
-            for r in xrange(len(R)-1):
+            for r in range(len(R)-1):
                 rcurr = R[r]
                 rnext = R[r+1]
 
@@ -123,5 +121,3 @@ def rwa_std_alt(N, A, T, holding_time, paths):
             # try another route insted of blocking immediately
 
     return 1 # blocked
-
-### EOF ###

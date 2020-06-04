@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # vim: set fileencoding=utf-8
 #
@@ -14,12 +14,12 @@
 # Author: April 2016
 # Cassio Trindade Batista - cassio.batista.13@gmail.com
 #
-# Last revised on February 2017
+# Last revised on June 2020
 
 
 import sys
-reload(sys)  
-sys.setdefaultencoding('utf8') # for plot in PT_BR
+#reload(sys)  
+#sys.setdefaultencoding('utf8') # for plot in PT_BR
 
 import info
 import random
@@ -66,7 +66,7 @@ def generate():
     nsf_time = np.zeros((info.NSF_NUM_NODES, info.NSF_NUM_NODES, info.NSF_NUM_CHANNELS))
     for link in nsf_links:
         availability = format(nsf_wave[link[0]][link[1]], '0%db' % info.NSF_NUM_CHANNELS)
-        for w in xrange(info.NSF_NUM_CHANNELS):
+        for w in range(info.NSF_NUM_CHANNELS):
             nsf_time[link[0]][link[1]][w] = int(availability[w]) * np.random.rand()
             nsf_time[link[1]][link[0]][w] = nsf_time[link[0]][link[1]][w]
 
@@ -147,7 +147,7 @@ def plot_graph(bestroute=False):
 
     # highlight in red the shortest path with wavelength(s) available
     if bestroute:
-        for i in xrange(len(bestroute)-1):
+        for i in range(len(bestroute)-1):
             x = [ nsfnodes[bestroute[i]][0], nsfnodes[bestroute[i+1]][0] ]
             y = [ nsfnodes[bestroute[i]][1], nsfnodes[bestroute[i+1]][1] ]
             plt.plot(x, y, 'r', linewidth=2.5)
@@ -172,6 +172,4 @@ def plot_graph(bestroute=False):
     plt.show(block=True)
 
 #def nsfnet_generator_recover():
-#''.join( [random.choice((0,1)) for i in xrange(info.NSF_NUM_NODES)] )
-
-### EOF ###
+#''.join( [random.choice((0,1)) for i in range(info.NSF_NUM_NODES)] )

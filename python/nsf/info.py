@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # vim: set fileencoding=utf-8
 #
@@ -14,7 +14,7 @@
 # Author: April 2016
 # Cassio Trindade Batista - cassio.batista.13@gmail.com
 #
-# Last edited on March, 2017
+# Last edited on June, 2020
 
 # Debug Parameters
 DEBUG = True
@@ -49,5 +49,3 @@ GA_GEN_INTERVAL   = 8    # interval to update rates
 
 # Yen's Algorithm Parameters
 K = 2
-
-### EOF ###
