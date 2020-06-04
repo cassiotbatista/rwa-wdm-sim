@@ -22,7 +22,6 @@
 import info
 import nsf
 
-from termcolor import colored
 from operator import itemgetter
 
 import math
