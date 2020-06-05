@@ -5,17 +5,45 @@ wavelength assignment (RWA) problem over wavelength-division multiplexing
 (WDM)-based optical networks with static traffic (SLE, for static lightpath
 establishment). The following algorithms are implemented:
 
-- Routing (R)
-    - Dijkstra's algorithm  
-    - Yen's algorithm (also known as K-shortest path algorithm)  
-
-- Wavelength Assignment (WA)
-    - First-fit algorithm  
-    - Vertex coloring algorithm  
-
+- Routing (R)    
+    - Dijkstra's algorithm    
+    - Yen's algorithm (also known as K-shortest path algorithm)    
+- Wavelength Assignment (WA)    
+    - First-fit algorithm    
+    - Vertex coloring algorithm    
 - RWA as one    
-   - General Objective Function  
-   - Genetic algorithm (ours)  
+   - General Objective Function    
+   - Genetic algorithm (ours)    
+
+The traffic is modelled according to exponential distrubutions of times
+(namely, the time between consecutive call arrivals and the time a successfully
+allocated call remains in the network occupying resources) that follow the
+Poisson distribution. This model was ported from a [Matlab toolbox written by 
+Przemyslaw Pawelcza](https://la.mathworks.com/matlabcentral/fileexchange/4797-wdm-network-blocking-computation-toolbox).
+
+## Requirements
+
+We recommend the use of [Anaconda](https://www.anaconda.com/)
+
+```bash
+$ conda create --name rwa python=3.7
+$ conda activate rwa
+$ conda install numpy matplotlib
+$ conda install -c anaconda networkx
+```
+
+However if you can of course use pip as well
+
+```bash
+$ pip3 install pip --upgrade
+$ pip3 install numpy matplotlib networkx
+```
+
+or simple use the `requirements.txt` file
+
+```bash
+$ pip3 install -r requirements.txt
+```
 
 ## Citation
 
@@ -74,3 +102,7 @@ us as one of the following:
     keywords  = {Genetic algorithm, WDM optical networks, general objective function, routing and wavelength assignment},
 }
 ```
+
+## License
+
+MIT
