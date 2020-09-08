@@ -24,8 +24,15 @@ import itertools
 import numpy as np
 import networkx as nx
 
-from net import nsf as net
 import info
+if info.USE_NSF:
+    from net import nsf as net
+elif info.USE_CLARA:
+    from net import clara as net
+elif info.USE_RNP:
+    from net import rnp as net
+elif info.USE_JANET:
+    from net import janet as net
 
 
 # https://networkx.github.io/documentation/networkx-1.10/reference/algorithms.shortest_paths.html

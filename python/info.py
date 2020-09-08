@@ -32,6 +32,10 @@ SIM_MAX_LOAD = 21         # last Erlang value (open interval)
 # Network Parameters
 NUM_CHANNELS = 8      # total number of wavelengths available
 CHANNEL_FREE = False  # init all link wavelengths available at once?
+USE_NSF      = True
+USE_CLARA    = False
+USE_RNP      = False
+USE_JANET    = False
 
 # Genetic Algorithm Parameters
 GA_SIZE_POP       = 30    # size of the population of each species

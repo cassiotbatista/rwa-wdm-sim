@@ -20,7 +20,14 @@
 # Assignment (RWA) in Optical Networks
 
 import info
-from net import nsf as net
+if info.USE_NSF:
+    from net import nsf as net
+elif info.USE_CLARA:
+    from net import clara as net
+elif info.USE_RNP:
+    from net import rnp as net
+elif info.USE_JANET:
+    from net import janet as net
 
 from operator import itemgetter
 

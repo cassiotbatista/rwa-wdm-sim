@@ -25,12 +25,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import info
-from net import nsf
 from rwa.ga import rwa_ga                  # genetic algorithm + gof
 from rwa.fixed import rwa_fix              # dijkstra + first fit
 from rwa.std_fixed import rwa_std_fix      # dijkstra + graph coloring
 from rwa.alternate import rwa_alt          # yen + first fit
 from rwa.std_alternate import rwa_std_alt  # yen + graph coloring
+if info.USE_NSF:
+    from net import nsf as net
+elif info.USE_CLARA:
+    from net import clara as net
+elif info.USE_RNP:
+    from net import rnp as net
+elif info.USE_JANET:
+    from net import janet as net
 
 
 def get_wave_availability(k, n):
@@ -49,9 +56,9 @@ def plot_result_graphs(filelist):
     for f in filelist:
         data = np.loadtxt(os.path.join(info.RESULTS_DIR, f))
         if data.ndim == 1:
-            plt.plot(data)
+            plt.plot(data, '--')
         else:
-            plt.plot(data.mean(axis=0))
+            plt.plot(data.mean(axis=0), '--')
         if data.ndim == 1 or data.shape[0] < 10:
             print(f, data.shape, end=' ')
             print('remember you should simulate at least 10 times')
@@ -64,7 +71,7 @@ def plot_result_graphs(filelist):
 
 if __name__ == '__main__':
 
-    nsf_wave, nsf_adj, nsf_time, nsf_links = nsf.generate()
+    nsf_wave, nsf_adj, nsf_time, nsf_links = net.generate()
 
     blocked_ga  = []
     blocked_std_fix = []
