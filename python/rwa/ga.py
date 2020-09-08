@@ -20,7 +20,7 @@
 # Assignment (RWA) in Optical Networks
 
 import info
-from net import nsf
+from net import nsf as net
 
 from operator import itemgetter
 
@@ -57,7 +57,7 @@ def make_chromosome(nsfnet, start_router, end_router, allels):
                 chromosome = False
                 break
 
-    if chromosome and len(chromosome) > info.NSF_NUM_NODES:
+    if chromosome and len(chromosome) > net.NUM_NODES:
         chromosome = False
 
     return chromosome
@@ -68,7 +68,7 @@ def evaluate(R, N):
 
     l = len(R)-1
     L = []
-    for w in range(1, info.NSF_NUM_CHANNELS+1):
+    for w in range(1, info.NUM_CHANNELS+1):
         num = 0
         for i in range(l):
             rcurr = R[i]
@@ -164,7 +164,7 @@ def mutate(nsfnet, normal_chrom):
 
     # alphabet: graph vertices that are not in genes before mutation point
     allels = [start_router, end_router]
-    allels += [a for a in range(info.NSF_NUM_NODES) if a not in trans_chrom]
+    allels += [a for a in range(net.NUM_NODES) if a not in trans_chrom]
 
     # create a new route R from mutation point to target node
     R = make_chromosome(nsfnet, start_router, end_router, allels)
@@ -197,8 +197,8 @@ def rwa_ga(N, A, T, holding_time):
     population = [] # [ [[chrom], [L], wl_avail, r_len], [[chrom], [L], wl_avail, r_len], ..., ]
     trials = 0
     while len(population) < info.GA_SIZE_POP and trials < 300:
-        allels = list(range(info.NSF_NUM_NODES)) # router indexes
-        chromosome = make_chromosome(A, info.NSF_SOURCE_NODE, info.NSF_DEST_NODE, allels)
+        allels = list(range(net.NUM_NODES)) # router indexes
+        chromosome = make_chromosome(A, net.SOURCE_NODE, net.DEST_NODE, allels)
         individual = [chromosome, [], 0, 0]
         if chromosome and individual not in population:
             population.append(individual)

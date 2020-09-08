@@ -19,8 +19,10 @@
 # A New Proposal of an Efficient Algorithm for Routing and Wavelength 
 # Assignment (RWA) in Optical Networks
 
-import info
 import networkx as nx
+
+import info
+from net import nsf as net
 
 # https://networkx.github.io/documentation/networkx-1.10/reference/algorithms.shortest_paths.html
 def dijkstra(mat, s, d):
@@ -35,11 +37,11 @@ def get_wave_availability(k, n):
     return (int(n) & ( 1 << k )) >> k
 
 def rwa_fix(N, A, T, holding_time):
-    R = dijkstra(A, info.NSF_SOURCE_NODE, info.NSF_DEST_NODE)
+    R = dijkstra(A, net.SOURCE_NODE, net.DEST_NODE)
 
     ## GLOBAL KNOWLEDGE first fit wavelength assignment
     #color = None
-    #avail = 2**info.NSF_NUM_CHANNELS-1
+    #avail = 2**info.NUM_CHANNELS-1
     #for r in range(len(R)-1):
     #    rcurr = R[r]
     #    rnext = R[r+1]
@@ -50,14 +52,14 @@ def rwa_fix(N, A, T, holding_time):
     #        break
 
     #    if avail > 0:
-    #        color = format(avail, '0%db' % info.NSF_NUM_CHANNELS)[::-1].index('1')
+    #        color = format(avail, '0%db' % info.NUM_CHANNELS)[::-1].index('1')
     #        break
     
     # LOCAL KNOWLEDGE first fit wavelength assignment
     color = None
     rcurr, rnext = R[0], R[1]
     # Check whether each wavelength ...
-    for w in range(info.NSF_NUM_CHANNELS):
+    for w in range(info.NUM_CHANNELS):
         # ... is available on the first link of route R
         if get_wave_availability(w, N[rcurr][rnext]):
             color = w
@@ -89,4 +91,4 @@ def rwa_fix(N, A, T, holding_time):
     else:
         return 1 # blocked
 
-#color = format(avail, '0%db' % info.NSF_NUM_CHANNELS)[::-1].index('1')
+#color = format(avail, '0%db' % info.NUM_CHANNELS)[::-1].index('1')

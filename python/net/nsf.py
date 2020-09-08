@@ -27,10 +27,15 @@ from matplotlib.ticker import EngFormatter
 import info
 
 
+SOURCE_NODE  = 0      # source for all cals
+DEST_NODE    = 12     # destination node
+NUM_NODES    = 14     # number of nodes on NSF network
+
+
 def generate():
     def set_wave_availability():
-        nwaves = 2**info.NSF_NUM_CHANNELS
-        if info.NSF_CHANNEL_FREE:
+        nwaves = 2**info.NUM_CHANNELS
+        if info.CHANNEL_FREE:
             return np.uint8(nwaves-1)
         return np.uint8(random.randrange(1, nwaves))
 
@@ -50,20 +55,20 @@ def generate():
         (11,13)               # 11
     ]
 
-    nsf_wave = np.zeros((info.NSF_NUM_NODES, info.NSF_NUM_NODES), dtype=np.uint8)
+    nsf_wave = np.zeros((NUM_NODES, NUM_NODES), dtype=np.uint8)
     for link in nsf_links:
         nsf_wave[link[0]][link[1]] = set_wave_availability() 
-        nsf_wave[link[1]][link[0]] = nsf_wave[link[0]][link[1]] 
+        nsf_wave[link[1]][link[0]] = nsf_wave[link[0]][link[1]]
 
-    nsf_adj = np.zeros((info.NSF_NUM_NODES, info.NSF_NUM_NODES), dtype=np.uint8)
+    nsf_adj = np.zeros((NUM_NODES, NUM_NODES), dtype=np.uint8)
     for link in nsf_links:
         nsf_adj[link[0]][link[1]] = 1
         nsf_adj[link[1]][link[0]] = nsf_adj[link[0]][link[1]] 
 
-    nsf_time = np.zeros((info.NSF_NUM_NODES, info.NSF_NUM_NODES, info.NSF_NUM_CHANNELS))
+    nsf_time = np.zeros((NUM_NODES, NUM_NODES, info.NUM_CHANNELS))
     for link in nsf_links:
-        availability = format(nsf_wave[link[0]][link[1]], '0%db' % info.NSF_NUM_CHANNELS)
-        for w in range(info.NSF_NUM_CHANNELS):
+        availability = format(nsf_wave[link[0]][link[1]], '0%db' % info.NUM_CHANNELS)
+        for w in range(info.NUM_CHANNELS):
             nsf_time[link[0]][link[1]][w] = int(availability[w]) * np.random.rand()
             nsf_time[link[1]][link[0]][w] = nsf_time[link[0]][link[1]][w]
 

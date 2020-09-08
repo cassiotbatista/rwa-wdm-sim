@@ -124,12 +124,12 @@ if __name__ == '__main__':
                 sys.stdout.write('FIX: %04d '  % count_block_fix)
                 sys.stdout.flush()
 
-            aux_fix = {idx:[] for idx in range(info.NSF_NUM_CHANNELS)}
-            aux_alt = {idx:[] for idx in range(info.NSF_NUM_CHANNELS)}
+            aux_fix = {idx:[] for idx in range(info.NUM_CHANNELS)}
+            aux_alt = {idx:[] for idx in range(info.NUM_CHANNELS)}
             # Update all channels that are still in use
             for link in nsf_links:
                 i, j = link
-                for w in range(info.NSF_NUM_CHANNELS):
+                for w in range(info.NUM_CHANNELS):
 
                     # GA + GOF
                     if  T_ga[i][j][w] > until_next:

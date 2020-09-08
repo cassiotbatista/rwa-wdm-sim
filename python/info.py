@@ -29,13 +29,9 @@ SIM_NUM_GEN = 150         # this represents the number of calls (connection
 SIM_MIN_LOAD = 1          # first Erlang value (closed interval)
 SIM_MAX_LOAD = 21         # last Erlang value (open interval)
 
-# NSF Parameters
-NSF_SOURCE_NODE  = 0      # source for all cals
-NSF_DEST_NODE    = 12     # destination node
-NSF_NUM_NODES    = 14     # number of nodes on NSF network
-
-NSF_NUM_CHANNELS = 8      # total number of wavelengths available
-NSF_CHANNEL_FREE = False  # init all link wavelengths available at once?
+# Network Parameters
+NUM_CHANNELS = 8      # total number of wavelengths available
+CHANNEL_FREE = False  # init all link wavelengths available at once?
 
 # Genetic Algorithm Parameters
 GA_SIZE_POP       = 30    # size of the population of each species

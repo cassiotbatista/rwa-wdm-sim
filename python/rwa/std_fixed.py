@@ -20,11 +20,13 @@
 # Assignment (RWA) in Optical Networks
 
 
-import info
-
 import itertools
 import numpy as np
 import networkx as nx
+
+from net import nsf as net
+import info
+
 
 # https://networkx.github.io/documentation/networkx-1.10/reference/algorithms.shortest_paths.html
 def dijkstra(mat, s, d):
@@ -65,7 +67,7 @@ def get_wave_availability(k, n):
     return (int(n) & ( 1 << k )) >> k
 
 def rwa_std_fix(N, A, T, holding_time, paths):
-    R = dijkstra(A, info.NSF_SOURCE_NODE, info.NSF_DEST_NODE)
+    R = dijkstra(A, net.SOURCE_NODE, net.DEST_NODE)
     paths.append([R, None])
 
     H = np.zeros((len(paths), len(paths)), dtype=np.int)
@@ -89,7 +91,7 @@ def rwa_std_fix(N, A, T, holding_time, paths):
 
     color = greedy_color(H, colors)
 
-    if color < info.NSF_NUM_CHANNELS:
+    if color < info.NUM_CHANNELS:
         for r in range(len(R)-1):
             rcurr = R[r]
             rnext = R[r+1]

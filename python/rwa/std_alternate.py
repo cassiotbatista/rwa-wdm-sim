@@ -20,11 +20,13 @@
 # Assignment (RWA) in Optical Networks
 
 
-import info
-
 import itertools
 import numpy as np
 import networkx as nx
+
+import info
+from net import nsf as net
+
 
 # https://networkx.github.io/documentation/networkx-1.10/reference/algorithms.simple_paths.html
 def yen(mat, s, d, k):
@@ -65,7 +67,7 @@ def get_wave_availability(k, n):
     return (int(n) & ( 1 << k )) >> k
 
 def rwa_std_alt(N, A, T, holding_time, paths):
-    routes = yen(A, info.NSF_SOURCE_NODE, info.NSF_DEST_NODE, info.K)
+    routes = yen(A, net.SOURCE_NODE, net.DEST_NODE, info.K)
 
     for R in routes:
         paths.append([R, None])
@@ -91,7 +93,7 @@ def rwa_std_alt(N, A, T, holding_time, paths):
 
         color = greedy_color(H, colors)
 
-        if color < info.NSF_NUM_CHANNELS:
+        if color < info.NUM_CHANNELS:
             for r in range(len(R)-1):
                 rcurr = R[r]
                 rnext = R[r+1]
