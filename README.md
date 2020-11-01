@@ -1,14 +1,14 @@
 # RWA Simulator over WDM Optical Networks
 
-This repo basically basically contains a simulator that covers the routing and
+This repo contains a simulator that covers the routing and
 wavelength assignment (RWA) problem over wavelength-division multiplexing
-(WDM)-based optical networks with static traffic (SLE, for static lightpath
+(WDM)-based all-optical networks with static traffic (SLE, for static lightpath
 establishment). The following algorithms are implemented:
 
-- Routing (R)    
+- Routing     
     - Dijkstra's algorithm    
     - Yen's algorithm (also known as K-shortest path algorithm)    
-- Wavelength Assignment (WA)    
+- Wavelength Assignment     
     - First-fit algorithm    
     - Vertex coloring algorithm    
 - RWA as one    
@@ -21,25 +21,59 @@ allocated call remains in the network occupying resources) that follow the
 Poisson distribution. This model was ported from a [Matlab toolbox written by 
 Przemyslaw Pawelcza](https://la.mathworks.com/matlabcentral/fileexchange/4797-wdm-network-blocking-computation-toolbox).
 
-## Requirements
+## Installation
 
-We recommend the use of [Anaconda](https://www.anaconda.com/)
+Directly from PyPI via pip:
 
 ```bash
-$ conda create --name rwa python=3.7
+$ pip install rwa_wdm
+```
+
+Or, from source:
+
+```bash
+$ git clone htps://github.com/cassiobatista/rwa-wdm-sim.git
+$ cd rwa-wdm-sim/
+$ python setup.py install --skip-build
+```
+
+## Usage
+
+As a module from CLI:
+
+```bash
+$ python -m rwa_wdm -t rnp -c 8 -r dijkstra -w first-fit -d /tmp/results -p
+```
+
+Alternatively, as a lib:
+
+```python
+# TBD
+```
+
+## Requirements
+
+:warning: manual installation of required packages is necessary only if you're
+debugging the source without properly installing the package via either PyPI or
+`setuptools`.
+
+We recommend the use of [Anaconda](https://www.anaconda.com/):
+
+```bash
+$ conda create --name rwa python=3.8
 $ conda activate rwa
 $ conda install numpy matplotlib
 $ conda install -c anaconda networkx
 ```
 
-However if you can of course use pip as well
+However, you can of course just use pip as well:
 
 ```bash
 $ pip3 install pip --upgrade
 $ pip3 install numpy matplotlib networkx
 ```
 
-or simple use the `requirements.txt` file
+Or simply use the `requirements.txt` file:
 
 ```bash
 $ pip3 install -r requirements.txt
@@ -47,10 +81,9 @@ $ pip3 install -r requirements.txt
 
 ## Citation
 
-If you use this code or want to mention the paper referred above, please cite 
-us as one of the following: 
+If you use this code, please cite us as one of the following: 
 
-### EPIA 2017 
+### [EPIA 2017](https://link.springer.com/chapter/10.1007%2F978-3-319-65340-2_35)
 
 > Teixeira D.B.A., Batista C.T., Cardoso A.J.F., de S. Araújo J. (2017) 
 > A Genetic Algorithm Approach for Static Routing and Wavelength Assignment in
@@ -69,12 +102,11 @@ us as one of the following:
     address   = {Cham},
     pages     = {421--432},
     doi       = {10.1007/978-3-319-65340-2_35},
-    url       = {\url{https://github.com/cassiobatista/RWA-WDM}},
     isbn      = {978-3-319-65340-2}
 }
 ```
 
-### IFIP LANC 2018 
+### [IFIP LANC 2018](https://dl.acm.org/doi/10.1145/3277103.3277126)
 
 > Cassio Batista, Diego Teixeira, Thiago Coelho, and Josivaldo Araújo. 2018. 
 > Static-Traffic Routing and Wavelength Assignment in Transparent WDM Networks 
@@ -94,12 +126,10 @@ us as one of the following:
     location  = {S\~{a}o Paulo, Brazil},
     pages     = {56--63},
     numpages  = {8},
-    url       = {http://doi.acm.org/10.1145/3277103.3277126},
     doi       = {10.1145/3277103.3277126},
     acmid     = {3277126},
     publisher = {ACM},
-    address   = {New York, NY, USA},
-    keywords  = {Genetic algorithm, WDM optical networks, general objective function, routing and wavelength assignment},
+    address   = {New York, NY, USA}
 }
 ```
 
