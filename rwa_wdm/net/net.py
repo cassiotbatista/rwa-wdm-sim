@@ -14,7 +14,6 @@ import matplotlib.pyplot as plt
 logger = logging.getLogger(__name__)  # noqa
 
 
-
 class Lightpath(object):
     """Emulates a lightpath composed by a route and a wavelength channel
 

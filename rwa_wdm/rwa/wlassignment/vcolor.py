@@ -1,5 +1,5 @@
 from itertools import count
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 import networkx as nx

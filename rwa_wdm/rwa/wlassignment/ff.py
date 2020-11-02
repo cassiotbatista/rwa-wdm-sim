@@ -5,7 +5,7 @@
 from typing import List, Union
 
 # FIXME https://mypy.readthedocs.io/en/latest/common_issues.html#import-cycles
-from ...net import Network, Lightpath
+from ...net import Network
 
 
 def first_fit(net: Network, route: List[int]) -> Union[int, None]:

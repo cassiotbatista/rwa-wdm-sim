@@ -1,8 +1,6 @@
 import logging
 from typing import List, Tuple, Union
 
-import numpy as np
-
 from .pop import Population
 from .env import evaluate, select, cross, mutate
 from ...net import Network
@@ -40,7 +38,7 @@ class GeneticAlgorithm(object):
             allels = set(range(net.nnodes))  # router indexes
             chromosome = population.make_chromosome(net.a, net.s, net.d,
                                                     allels, net.nnodes)
-            if chromosome is not None:  # and chromosome not in population.individuals:
+            if chromosome is not None:
                 population.add_chromosome(chromosome)
                 trial = 0
             else:

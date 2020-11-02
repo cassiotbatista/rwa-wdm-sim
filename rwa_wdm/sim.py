@@ -12,8 +12,6 @@ problem.
 
 # [1] https://la.mathworks.com/matlabcentral/fileexchange/4797-wdm-network-blocking-computation-toolbox
 
-import sys
-import os
 import logging
 from typing import Callable
 
@@ -192,6 +190,9 @@ def rwa_simulator(args):
     print('\n%-7s ' % net.name, end='')
     print(' '.join(['%4.1f' % b for b in blocks_per_erlang]))
 
-    write_results_to_disk(args.result_dir, net.name + '.bp', blocks_per_erlang)
+    filename = '%s_%dch_%dreq_%s.bp' % (
+        args.rwa if args.rwa is not None else '%s_%s' % (args.r, args.w),
+        args.channels, args.calls, net.name)
+    write_results_to_disk(args.result_dir, filename, blocks_per_erlang)
     if args.plot:
         plot_blocking_probability(args.result_dir)

@@ -1,5 +1,4 @@
 import logging
-from typing import Tuple
 import numpy as np
 
 from .utils import gof
@@ -57,7 +56,7 @@ def cross(parents: Population, pop_size: int, tc: float) -> Population:
         dad = dad.genes
         mom = mom.genes
         if tc > np.random.random():
-            # common nodes between father and mother, excluding source and target
+            # common nodes between father and mother, excluding s and d
             ridx = []
             for gene in dad[1:len(dad) - 1]:
                 if gene in mom[1:len(mom) - 1]:
@@ -75,8 +74,8 @@ def cross(parents: Population, pop_size: int, tc: float) -> Population:
             son = dad
             daughter = mom
 
-        children.add_chromosome(Chromosome(dad))
-        children.add_chromosome(Chromosome(mom))
+        children.add_chromosome(Chromosome(son))
+        children.add_chromosome(Chromosome(daughter))
 
     return children
 
@@ -113,7 +112,7 @@ def mutate(children: Population, pop_size: int,
             for gene in range(geneid, len(trans_genes)):
                 trans_genes.pop()
 
-            # alphabet: graph vertices that are not in genes before mutation point
+            # alphabet: vertices that are not in genes before mutation point
             allels = {start_router, end_router}
             for node in range(net.nnodes):
                 if node not in trans_genes:
