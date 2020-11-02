@@ -9,7 +9,7 @@ import logging
 import numpy as np
 import matplotlib.pyplot as plt
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)  # noqa
 
 
 def write_results_to_disk(result_dir, filename, bplist):
@@ -19,7 +19,10 @@ def write_results_to_disk(result_dir, filename, bplist):
     if not os.path.isdir(result_dir):
         logger.info('Creating result dir in %s' % result_dir)
         os.mkdir(result_dir)
-    with open(os.path.join(result_dir, filename), 'a') as f:
+
+    filepath = os.path.join(result_dir, filename)
+    logger.info('Writing results to file "%s"' % filepath)
+    with open(filepath, 'a') as f:
         for bp in bplist:
             f.write(' %7.3f' % bp)
         f.write('\n')

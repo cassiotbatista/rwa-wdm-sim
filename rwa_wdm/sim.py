@@ -45,8 +45,9 @@ def get_net_instance_from_args(topname: str, numch: int) -> Network:
         raise ValueError('No network named "%s"' % topname)
 
 
-def get_rwa_algorithm_from_args(r_alg: str, wa_alg: str,
-                                rwa_alg: str) -> Callable:
+def get_rwa_algorithm_from_args(r_alg: str, wa_alg: str, rwa_alg: str,
+                                ga_popsize: int, ga_ngen: int,
+                                ga_xrate: float, ga_mrate: float) -> Callable:
     """Parse args and returns a function that performs rwa
 
     """
@@ -74,7 +75,7 @@ def get_rwa_algorithm_from_args(r_alg: str, wa_alg: str,
     elif rwa_alg is not None:
         if rwa_alg == 'ga':
             from .rwa import genetic_algorithm
-            return genetic_algorithm
+            return genetic_algorithm(ga_popsize, ga_ngen, ga_xrate, ga_mrate)
         else:
             raise ValueError('Unknown algorithm "%s"' % rwa_alg)
     else:
@@ -85,20 +86,28 @@ def rwa_simulator(args):
 
     # TODO parse args by group
     net = get_net_instance_from_args(args.topology, args.channels)
-    rwa = get_rwa_algorithm_from_args(args.r, args.w, args.rwa_alg)
+    rwa = get_rwa_algorithm_from_args(args.r, args.w, args.rwa,
+                                      args.pop_size, args.num_gen,
+                                      args.cross_rate, args.mut_rate)
 
     blocks_per_erlang = []
+    blocklist = []
 
     # print header for pretty stdout console logging
     print('Load:   ', end='')
     for i in range(1, args.load + 1):
         print('%4d' % i, end=' ')
-    print('\nBlocks: ', end='')
+    print()
 
     # ascending loop through Erlangs
     for load in range(1, args.load + 1):
         blocks = 0
         for call in range(args.calls):
+            print('\rBlocks: ', end='', flush=True)
+            for b in blocklist:
+                print('%04d ' % b, end='', flush=True)
+            print(' %04d' % call, end='')
+
             # Poisson arrival is here modelled as an exponential distribution
             # of times, according to Pawełczak's MATLAB package [1]:
             # @until_next: time until the next call arrives
@@ -161,7 +170,7 @@ def rwa_simulator(args):
 
             # Update *all* channels that are still in use
             for (i, j) in net.get_edges():
-                for w in range(net._num_channels):  # FIXME
+                for w in range(net.nchannels):
                     if net.t[i][j][w] > until_next:
                         net.t[i][j][w] -= until_next
                     else:
@@ -174,9 +183,12 @@ def rwa_simulator(args):
                     net.t[j][i][w] = net.t[i][j][w]
                     net.n[j][i] = net.n[j][i]
 
-        print('%04d ' % blocks, end='', flush=True)
+        blocklist.append(blocks)
         blocks_per_erlang.append(100.0 * blocks / args.calls)
 
+    print('\rBlocks: ', end='', flush=True)
+    for b in blocklist:
+        print('%04d ' % b, end='', flush=True)
     print('\n%-7s ' % net.name, end='')
     print(' '.join(['%4.1f' % b for b in blocks_per_erlang]))
 

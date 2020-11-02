@@ -5,7 +5,7 @@ import numpy as np
 import networkx as nx
 
 # FIXME https://mypy.readthedocs.io/en/latest/common_issues.html#import-cycles
-from rwa_wdm.net import Network, Lightpath
+from ...net import Network, Lightpath
 
 
 def greedy_color(H, colors):

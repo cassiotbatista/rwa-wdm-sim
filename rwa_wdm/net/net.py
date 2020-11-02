@@ -4,11 +4,15 @@
 
 __author__ = 'Cassio Batista'
 
-from typing import Iterable, List, Tuple
+import logging
 from itertools import count
+from typing import Iterable, List, Tuple
 
 import numpy as np
 import matplotlib.pyplot as plt
+
+logger = logging.getLogger(__name__)  # noqa
+
 
 
 class Lightpath(object):
@@ -203,6 +207,18 @@ class Network(object):
     def name(self) -> str:
         return self._name
 
+    @property
+    def nchannels(self) -> int:
+        return self._num_channels
+
+    @property
+    def nnodes(self) -> int:
+        return self._num_nodes
+
+    @property
+    def nlinks(self) -> int:
+        return self._num_links
+
     def get_wave_availability(self, k, n):
         return (int(n) & (1 << k)) >> k
 
@@ -217,9 +233,10 @@ class Network(object):
         ax.grid()
 
         # draw edges before vertices
-        for link in links:
-            x = [nodes[link[0]][0], nodes[link[1]][0]]
-            y = [nodes[link[0]][1], nodes[link[1]][1]]
+        # FIXME this won't work
+        for (i, j) in links:
+            x = [nodes[i][0], nodes[j][0]]
+            y = [nodes[i][1], nodes[j][1]]
             plt.plot(x, y, 'k', linewidth=2)
 
         # highlight in red the shortest path with wavelength(s) available
@@ -231,10 +248,9 @@ class Network(object):
                 plt.plot(x, y, 'r', linewidth=2.5)
 
         # draw vertices
-        for i, node in enumerate(nodes):
-            plt.plot(node[0], node[1], 'wo', markersize=25)
-            ax.annotate(str(i), xy=(node[0], node[1]),
-                        ha='center', va='center')
+        for label, (i, j) in nodes.items():
+            plt.plot(i, j, 'wo', markersize=25)
+            ax.annotate(label, xy=(i, j), ha='center', va='center')
 
         # adjust values over both x and y axis
         plt.xticks(np.arange(0, 9, 1))

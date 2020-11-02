@@ -1,20 +1,28 @@
+import os
 import logging
 import argparse
+import tempfile
 
 from .sim import rwa_simulator
 
 logger = logging.getLogger(__name__)
 
+TEMP_DIR = os.path.join(tempfile.gettempdir(), 'rwa_results')
+
 
 if __name__ == '__main__':
-    fmt = lambda prog: argparse.HelpFormatter("python -m rwa_wdm", width=220,
-                                              max_help_position=250)
+    fmt = lambda prog: argparse.ArgumentDefaultsHelpFormatter(
+        "python -m rwa_wdm", width=220, max_help_position=250)
     parser = argparse.ArgumentParser(
-        formatter_class=fmt, description='RWA simulator for WDM networks')
+        formatter_class=fmt,
+        description='RWA WDM: routing and wavelength assignment '
+                    'simulator for WDM networks',
+        usage='%(prog)s [-h] [-r <alg> -w <alg> | --rwa-alg <alg>] [options]')
 
-    net = parser.add_argument_group('network')
-    rwa = parser.add_argument_group('rwa-algorithms')
-    sim = parser.add_argument_group('simulator')
+    net = parser.add_argument_group('Network options')
+    rwa = parser.add_argument_group('RWA algorithms options')
+    sim = parser.add_argument_group('RWA simulator options')
+    ga = parser.add_argument_group('Genetic algorithm options')
 
     # network topology options
     net.add_argument('-t', default='nsf', dest='topology',
@@ -24,17 +32,19 @@ if __name__ == '__main__':
     net.add_argument('-c', type=int, default=8, dest='channels',
                      choices=[2 ** (i + 1) for i in range(8)],  # max: 256
                      metavar='<channels>',
-                     help='number of wavelength channels (λ) per link')
+                     help='number of λ per link')
 
     # rwa algorithms options
-    # TODO https://stackoverflow.com/questions/17909294/python-argparse-mutual-exclusive-group
+    # TODO [ -r <algorithms> -w <algorithm> ] [ --rwa <algorithm> ]
+    # https://stackoverflow.com/questions/17909294/python-argparse-mutual-exclusive-group
     rwa.add_argument('-r', metavar='<algorithm>',
                      choices=['dijkstra', 'yen'],
                      help='routing algorithm')
     rwa.add_argument('-w', metavar='<algorithm>',
                      choices=['vertex-coloring', 'first-fit'],
                      help='wavelength assignment algorithm')
-    rwa.add_argument('--rwa-alg', metavar='<algorithm>', choices=['ga'],
+    rwa.add_argument('--rwa', metavar='<algorithm>',
+                     choices=['ga'],
                      help='routing *and* wavelength assigment algorithm')
     rwa.add_argument('-y', metavar='<yen-alt-paths>', type=int,
                      default=2, choices=range(2, 5),
@@ -47,17 +57,29 @@ if __name__ == '__main__':
     sim.add_argument('-k', type=int, default=150, dest='calls',
                      metavar='<conn-requests>',
                      help='number of connection requests to arrive')
-    sim.add_argument('-d', default='results', dest='result_dir',
+    sim.add_argument('-d', default=TEMP_DIR, dest='result_dir',
                      metavar='<result-dir>',
-                     help='dir to store blocking probability calculations')
+                     help='dir to store blocking probability results')
     sim.add_argument('-p', default=False, dest='plot', action='store_true',
                      help='plot blocking probability graph after simulation?')
 
-    args = parser.parse_args()
+    # genetic algorithm options
+    ga.add_argument('--pop-size', type=int, default=25,
+                    help='number of individuals in the population')
+    ga.add_argument('--num-gen', type=int, default=25,
+                    help='number of generations for population to evolve')
+    ga.add_argument('--cross-rate', type=float, default=0.40,
+                    help='crossover rate')
+    ga.add_argument('--mut-rate', type=float, default=0.02,
+                    help='mutation rate')
 
-    # summary
+    # parse args and print summary
+    args = parser.parse_args()
     logging.info('Simulating over %s topology with %d channels using '
                  'algorithms (%s + %s | %s)' % (args.topology, args.channels,
-                                                args.r, args.w, args.rwa_alg))
+                                                args.r, args.w, args.rwa))
 
+    # call simulator
+    # TODO pass args by group or even individually in order to ease future lib
+    # usage of the simulator
     rwa_simulator(args)
