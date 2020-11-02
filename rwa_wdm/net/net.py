@@ -130,7 +130,6 @@ class TrafficMatrix(np.ndarray):
     def num_conns(self):
         return len(self._lightpaths)
 
-    @property
     def usage(self, wavelength: int) -> np.uint16:
         return self._usage[wavelength]
 

@@ -49,6 +49,7 @@ def get_rwa_algorithm_from_args(r_alg: str, wa_alg: str, rwa_alg: str,
     """Parse args and returns a function that performs rwa
 
     """
+
     if r_alg is not None:  # NOTE implies `wa_alg` is not `None`
         if r_alg == 'dijkstra':
             if wa_alg == 'vertex-coloring':
@@ -71,7 +72,7 @@ def get_rwa_algorithm_from_args(r_alg: str, wa_alg: str, rwa_alg: str,
         else:
             raise ValueError('Unknown algorithm "%s"' % r_alg)
     elif rwa_alg is not None:
-        if rwa_alg == 'ga':
+        if rwa_alg == 'genetic-algorithm':
             from .rwa import genetic_algorithm
             return genetic_algorithm(ga_popsize, ga_ngen, ga_xrate, ga_mrate)
         else:
@@ -80,16 +81,15 @@ def get_rwa_algorithm_from_args(r_alg: str, wa_alg: str, rwa_alg: str,
         raise ValueError('Algorithm not specified')
 
 
-def rwa_simulator(args):
+def simulator(args):
 
-    # TODO parse args by group
     net = get_net_instance_from_args(args.topology, args.channels)
     rwa = get_rwa_algorithm_from_args(args.r, args.w, args.rwa,
                                       args.pop_size, args.num_gen,
                                       args.cross_rate, args.mut_rate)
 
-    blocks_per_erlang = []
     blocklist = []
+    blocks_per_erlang = []
 
     # print header for pretty stdout console logging
     print('Load:   ', end='')
@@ -193,6 +193,7 @@ def rwa_simulator(args):
     filename = '%s_%dch_%dreq_%s.bp' % (
         args.rwa if args.rwa is not None else '%s_%s' % (args.r, args.w),
         args.channels, args.calls, net.name)
+
     write_results_to_disk(args.result_dir, filename, blocks_per_erlang)
     if args.plot:
         plot_blocking_probability(args.result_dir)

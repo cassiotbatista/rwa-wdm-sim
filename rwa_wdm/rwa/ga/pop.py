@@ -75,7 +75,7 @@ class Population(object):
         return copy.deepcopy(self)
 
     # https://stackoverflow.com/questions/403421/how-to-sort-a-list-of-objects-based-on-an-attribute-of-the-objects
-    def sort(self) -> None:
+    def sort(self) -> int:
         # sort according to λ availability .:. least congested paths first
         self.individuals.sort(key=lambda x: x.fit.lambdas, reverse=True)
 

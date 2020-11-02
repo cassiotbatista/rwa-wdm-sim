@@ -16,7 +16,7 @@ class CooperacionLatinoAmericana(Network):
                          len(self.get_nodes_2D_pos()),
                          len(self.get_edges()))
 
-    def get_edges(self) -> List[Tuple[int]]:
+    def get_edges(self) -> List[Tuple[int, int]]:
         """get"""
 
         return [
@@ -32,7 +32,7 @@ class CooperacionLatinoAmericana(Network):
             (11, 12)
         ]
 
-    def get_nodes_2D_pos(self) -> Dict[str, Tuple[float]]:
+    def get_nodes_2D_pos(self) -> Dict[str, Tuple[float, float]]:
         """Get position of the nodes on the bidimensional Cartesian plan"""
 
         return OrderedDict([
