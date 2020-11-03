@@ -20,7 +20,5 @@ def validate_args(args: Namespace) -> None:
         if args.r is not None or args.w is not None:
             raise ValueError('Set either --rwa flag alone or both -r and -w '
                              'flags combined.')
-    if args.y is not None:
-        if args.r != 'yen':
-            logger.warning('Alternate paths will not take effect if Yen\'s '
-                           'algorithm is not chosen for routing.')
+    if args.num_sim < 1:
+        raise ValueError('Expect a positive integer as number of simulations.')

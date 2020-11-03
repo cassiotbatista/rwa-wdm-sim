@@ -82,14 +82,9 @@ def get_rwa_algorithm_from_args(r_alg: str, wa_alg: str, rwa_alg: str,
 
 
 def simulator(args):
+    """Eita jesus
 
-    net = get_net_instance_from_args(args.topology, args.channels)
-    rwa = get_rwa_algorithm_from_args(args.r, args.w, args.rwa,
-                                      args.pop_size, args.num_gen,
-                                      args.cross_rate, args.mut_rate)
-
-    blocklist = []
-    blocks_per_erlang = []
+    """
 
     # print header for pretty stdout console logging
     print('Load:   ', end='')
@@ -97,103 +92,115 @@ def simulator(args):
         print('%4d' % i, end=' ')
     print()
 
-    # ascending loop through Erlangs
-    for load in range(1, args.load + 1):
-        blocks = 0
-        for call in range(args.calls):
-            print('\rBlocks: ', end='', flush=True)
-            for b in blocklist:
-                print('%04d ' % b, end='', flush=True)
-            print(' %04d' % call, end='')
+    for simulation in range(args.num_sim):
+        net = get_net_instance_from_args(args.topology, args.channels)
+        rwa = get_rwa_algorithm_from_args(args.r, args.w, args.rwa,
+                                          args.pop_size, args.num_gen,
+                                          args.cross_rate, args.mut_rate)
+        blocklist = []
+        blocks_per_erlang = []
 
-            # Poisson arrival is here modelled as an exponential distribution
-            # of times, according to Pawełczak's MATLAB package [1]:
-            # @until_next: time until the next call arrives
-            # @holding_time: time an allocated call occupies net resources
-            until_next = -np.log(1 - np.random.rand()) / load
-            holding_time = -np.log(1 - np.random.rand())
+        # ascending loop through Erlangs
+        for load in range(1, args.load + 1):
+            blocks = 0
+            for call in range(args.calls):
+                print('\rBlocks: ', end='', flush=True)
+                for b in blocklist:
+                    print('%04d ' % b, end='', flush=True)
+                print(' %04d' % call, end='')
 
-            # Call RWA algorithm, which returns a lightpath if successful or
-            # None if no λ can be found available at the route's first link
-            lightpath = rwa(net, args.y)
+                # Poisson arrival is modelled as an exponential distribution
+                # of times, according to Pawełczak's MATLAB package [1]:
+                # @until_next: time until the next call arrives
+                # @holding_time: time an allocated call occupies net resources
+                until_next = -np.log(1 - np.random.rand()) / load
+                holding_time = -np.log(1 - np.random.rand())
 
-            # If lightpath is non None, the first link between the source node
-            # and one of its neighbours has a wavelength available, and the RWA
-            # algorithm running at that node thinks it can allocate on that λ.
-            # However, we still need to check whether that same wavelength is
-            # available on the remaining links along the path in order to reach
-            # the destination node. In other words, despite the RWA was
-            # successful at the first node, the connection can still be blocked
-            # on further links in the future hops to come, nevertheless.
-            if lightpath is not None:
-                # check if the color chosen at the first link is available on
-                # all remaining links of the route
-                for (i, j) in lightpath.links:
-                    if not net.get_wave_availability(lightpath.w, net.n[i][j]):
-                        lightpath = None
-                        break
+                # Call RWA algorithm, which returns a lightpath if successful
+                # or None if no λ can be found available at the route's first
+                # link
+                lightpath = rwa(net, args.y)
 
-            # Check if λ was not available either at the first link from the
-            # source or at any other further link along the route. Otherwise,
-            # we allocate resources on the network for the lightpath.
-            if lightpath is None:
-                blocks += 1
-            else:
-                lightpath.holding_time = holding_time
-                net.t.add_lightpath(lightpath)
-                for (i, j) in lightpath.links:
-                    net.n[i][j] -= 2 ** lightpath.w  # lock channel (bit: 0)
-                    net.t[i][j][lightpath.w] = holding_time
+                # If lightpath is non None, the first link between the source
+                # node and one of its neighbours has a wavelength available,
+                # and the RWA algorithm running at that node thinks it can
+                # allocate on that λ. However, we still need to check whether
+                # that same wavelength is available on the remaining links
+                # along the path in order to reach the destination node. In
+                # other words, despite the RWA was successful at the first
+                # node, the connection can still be blocked on further links
+                # in the future hops to come, nevertheless.
+                if lightpath is not None:
+                    # check if the color chosen at the first link is available
+                    # on all remaining links of the route
+                    for (i, j) in lightpath.links:
+                        if not net.get_wave_availability(lightpath.w,
+                                                         net.n[i][j]):
+                            lightpath = None
+                            break
 
-                    # make it symmetric
-                    net.n[j][i] = net.n[i][j]
-                    net.t[j][i][lightpath.w] = net.t[i][j][lightpath.w]
-
-            # FIXME The following two routines below are part of the same one:
-            # decreasing the time network resources remain allocated to
-            # connections, and removing finished connections from the traffic
-            # matrix. This, however, should be a single routine iterating over
-            # lightpaths links instead of all edges, so when the time is up on
-            # all links of a lightpath, the lightpath might be popped from the
-            # matrix's list. I guess the problem is the random initialisation
-            # of the traffic matrix's holding times during network object
-            # instantiation, but if this is indeed the fact it needs some
-            # consistent testing.
-            for lightpath in net.t.lightpaths:
-                if lightpath.holding_time > until_next:
-                    lightpath.holding_time -= until_next
+                # Check if λ was not available either at the first link from the
+                # source or at any other further link along the route. Otherwise,
+                # we allocate resources on the network for the lightpath.
+                if lightpath is None:
+                    blocks += 1
                 else:
-                    # time's up: remove connection from traffic matrix's list
-                    net.t.remove_lightpath_by_id(lightpath.id)
+                    lightpath.holding_time = holding_time
+                    net.t.add_lightpath(lightpath)
+                    for (i, j) in lightpath.links:
+                        net.n[i][j] -= 2 ** lightpath.w  # lock channel (bit: 0)
+                        net.t[i][j][lightpath.w] = holding_time
 
-            # Update *all* channels that are still in use
-            for (i, j) in net.get_edges():
-                for w in range(net.nchannels):
-                    if net.t[i][j][w] > until_next:
-                        net.t[i][j][w] -= until_next
+                        # make it symmetric
+                        net.n[j][i] = net.n[i][j]
+                        net.t[j][i][lightpath.w] = net.t[i][j][lightpath.w]
+
+                # FIXME The following two routines below are part of the same
+                # one: decreasing the time network resources remain allocated
+                # to connections, and removing finished connections from the
+                # traffic matrix. This, however, should be a single routine
+                # iterating over lightpaths links instead of all edges, so when
+                # the time is up on all links of a lightpath, the lightpath
+                # might be popped from the matrix's list. I guess the problem
+                # is the random initialisation of the traffic matrix's holding
+                # times during network object instantiation, but if this is
+                # indeed the fact it needs some consistent testing.
+                for lightpath in net.t.lightpaths:
+                    if lightpath.holding_time > until_next:
+                        lightpath.holding_time -= until_next
                     else:
-                        # time's up: free channel
-                        net.t[i][j][w] = 0
-                        if not net.get_wave_availability(w, net.n[i][j]):
-                            net.n[i][j] += 2 ** w  # free channel (bit: 1)
+                        # time's up: remove conn from traffic matrix's list
+                        net.t.remove_lightpath_by_id(lightpath.id)
 
-                    # make matrices symmetric
-                    net.t[j][i][w] = net.t[i][j][w]
-                    net.n[j][i] = net.n[j][i]
+                # Update *all* channels that are still in use
+                for (i, j) in net.get_edges():
+                    for w in range(net.nchannels):
+                        if net.t[i][j][w] > until_next:
+                            net.t[i][j][w] -= until_next
+                        else:
+                            # time's up: free channel
+                            net.t[i][j][w] = 0
+                            if not net.get_wave_availability(w, net.n[i][j]):
+                                net.n[i][j] += 2 ** w  # free channel (bit: 1)
 
-        blocklist.append(blocks)
-        blocks_per_erlang.append(100.0 * blocks / args.calls)
+                        # make matrices symmetric
+                        net.t[j][i][w] = net.t[i][j][w]
+                        net.n[j][i] = net.n[j][i]
 
-    print('\rBlocks: ', end='', flush=True)
-    for b in blocklist:
-        print('%04d ' % b, end='', flush=True)
-    print('\n%-7s ' % net.name, end='')
-    print(' '.join(['%4.1f' % b for b in blocks_per_erlang]))
+            blocklist.append(blocks)
+            blocks_per_erlang.append(100.0 * blocks / args.calls)
 
-    filename = '%s_%dch_%dreq_%s.bp' % (
-        args.rwa if args.rwa is not None else '%s_%s' % (args.r, args.w),
-        args.channels, args.calls, net.name)
+        print('\rBlocks: ', end='', flush=True)
+        for b in blocklist:
+            print('%04d ' % b, end='', flush=True)
+        print('\n%-7s ' % net.name, end='')
+        print(' '.join(['%4.1f' % b for b in blocks_per_erlang]))
 
-    write_results_to_disk(args.result_dir, filename, blocks_per_erlang)
+        filename = '%s_%dch_%dreq_%s.bp' % (
+            args.rwa if args.rwa is not None else '%s_%s' % (args.r, args.w),
+            args.channels, args.calls, net.name)
+
+        write_results_to_disk(args.result_dir, filename, blocks_per_erlang)
+
     if args.plot:
         plot_blocking_probability(args.result_dir)

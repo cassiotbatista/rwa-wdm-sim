@@ -7,7 +7,6 @@ from . import simulator
 from .util import validate_args
 
 logger = logging.getLogger(__name__)
-
 TEMP_DIR = os.path.join(tempfile.gettempdir(), 'rwa_results')
 
 
@@ -60,6 +59,9 @@ sim.add_argument('-k', type=int, default=150, dest='calls',
 sim.add_argument('-d', default=TEMP_DIR, dest='result_dir',
                  metavar='<result-dir>',
                  help='dir to store blocking probability results')
+sim.add_argument('-s', type=int, default=1, dest='num_sim',
+                 metavar='<num-simulations>',
+                 help='number of times to run the simulation')
 sim.add_argument('-p', default=False, dest='plot', action='store_true',
                  help='plot blocking probability graph after simulation?')
 
@@ -75,14 +77,14 @@ ga.add_argument('--mut-rate', type=float, default=0.02,
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    logger.info('Simulating %s connection requets arriving over %s topology '
-                'with %d λ channels per link using %s as RWA algorithm' % \
-                 (args.calls, args.topology, args.channels,
-                  args.rwa if args.rwa is not None else \
-                  '%s + %s combination' % (args.r, args.w)))
-
     try:
         validate_args(args)
-    except Exception as e:
+    except ValueError as e:
         logger.error('Bad input: %s', e)
-    simulator(args)
+    else:
+        logger.info('Simulating %s connection requests over %s topology with '
+                    '%d λ per link using %s as RWA algorithm' % \
+                    (args.calls, args.topology, args.channels,
+                     args.rwa if args.rwa is not None else \
+                     '%s + %s combination' % (args.r, args.w)))
+        simulator(args)
