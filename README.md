@@ -60,23 +60,21 @@ debugging the source without properly installing the package via either PyPI or
 We recommend the use of [Anaconda](https://www.anaconda.com/):
 
 ```bash
-$ conda create --name rwa python=3.8
+$ conda create --name rwa python=3.8 networkx numpy matplotlib
 $ conda activate rwa
-$ conda install numpy matplotlib
-$ conda install -c anaconda networkx
 ```
 
 However, you can of course just use pip as well:
 
 ```bash
-$ pip3 install pip --upgrade
-$ pip3 install numpy matplotlib networkx
+$ pip install pip --upgrade
+$ pip install numpy matplotlib networkx
 ```
 
 Or simply use the `requirements.txt` file:
 
 ```bash
-$ pip3 install -r requirements.txt
+$ pip install -r requirements.txt
 ```
 
 ## Citation
