@@ -83,6 +83,6 @@ if __name__ == '__main__':
 
     try:
         validate_args(args)
-        simulator(args)
     except Exception as e:
         logger.error('Bad input: %s', e)
+    simulator(args)
