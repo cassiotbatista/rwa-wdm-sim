@@ -6,6 +6,7 @@ __author__ = 'Cassio Batista'
 
 import logging
 from itertools import count
+from operator import itemgetter
 from typing import Iterable, List, Tuple
 
 import numpy as np
@@ -127,7 +128,7 @@ class TrafficMatrix(np.ndarray):
         return self._lightpaths
 
     @property
-    def num_conns(self):
+    def nconns(self):
         return len(self._lightpaths)
 
     def usage(self, wavelength: int) -> np.uint16:
@@ -226,39 +227,45 @@ class Network(object):
     def nlinks(self) -> int:
         return self._num_links
 
-    def plot_topology(self, bestroute=False) -> None:
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
+    def plot_topology(self, bestroute: List[int] = None) -> None:
+        fig, ax = plt.subplots()
+        ax.grid()
 
         # define vertices or nodes as points in 2D cartesian plan
         # define links or edges as node index ordered pairs in cartesian plan
-        nodes = self.get_nodes_2D_pos()
         links = self.get_edges()
-        ax.grid()
+        nodes = self.get_nodes_2D_pos()
+        node_coords = list(nodes.values())  # get only 2D coordinates
 
         # draw edges before vertices
-        # FIXME this won't work
         for (i, j) in links:
-            x = [nodes[i][0], nodes[j][0]]
-            y = [nodes[i][1], nodes[j][1]]
-            plt.plot(x, y, 'k', linewidth=2)
+            x = (node_coords[i][0], node_coords[j][0])
+            y = (node_coords[i][1], node_coords[j][1])
+            ax.plot(x, y, 'k', lw=2)
 
         # highlight in red the shortest path with wavelength(s) available
         # a.k.a. 'best route'
-        if isinstance(bestroute, list):
+        if bestroute is not None:
             for i in range(len(bestroute) - 1):
-                x = [nodes[bestroute[i]][0], nodes[bestroute[i + 1]][0]]
-                y = [nodes[bestroute[i]][1], nodes[bestroute[i + 1]][1]]
-                plt.plot(x, y, 'r', linewidth=2.5)
+                rcurr, rnext = bestroute[i], bestroute[i + 1]
+                x = (node_coords[rcurr][0], node_coords[rnext][0])
+                y = (node_coords[rcurr][1], node_coords[rnext][1])
+                ax.plot(x, y, 'r', lw=3)
 
         # draw vertices
         for label, (i, j) in nodes.items():
-            plt.plot(i, j, 'wo', markersize=25)
+            ax.plot(i, j, 'wo', ms=25, mec='k')
             ax.annotate(label, xy=(i, j), ha='center', va='center')
 
+        # https://stackoverflow.com/questions/13145368/find-the-maximum-value-in-a-list-of-tuples-in-python
+        xlim = np.ceil(max(node_coords, key=itemgetter(0))[0]) + 2
+        ylim = np.ceil(max(node_coords, key=itemgetter(1))[1]) + 2
+        if self.name == 'nsf':
+            xlim -= 1  # FIXME gambiarra, hehe. NSF needs redrawing
+
         # adjust values over both x and y axis
-        plt.xticks(np.arange(0, 9, 1))
-        plt.yticks(np.arange(0, 7, 1))
+        ax.set_xticks(np.arange(xlim))
+        ax.set_yticks(np.arange(ylim))
 
         # finally, show the plotted graph
         plt.show(block=True)

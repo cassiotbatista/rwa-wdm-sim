@@ -31,15 +31,15 @@ def vertex_coloring(net: Network, lightpath: Lightpath) -> Union[int, None]:
     """
     net.t.add_lightpath(lightpath)  # this is temporary
 
-    # NOTE `num_conns` gotta be at least one for this to work. The current
+    # NOTE `nconns` gotta be at least one for this to work. The current
     # route is assumed to be already in the graph when vertex coloring
     # strategies take place, because the route we are trying to find a λ to
     # must be already accounted for as part of the "group" of routes.
-    H = np.zeros((net.t.num_conns, net.t.num_conns), dtype=np.uint16)
-    if net.t.num_conns > 1:
+    H = np.zeros((net.t.nconns, net.t.nconns), dtype=np.uint16)
+    if net.t.nconns > 1:
         # cross compare paths over indices i and j
-        for i in range(net.t.num_conns):
-            for j in range(i + 1, net.t.num_conns):
+        for i in range(net.t.nconns):
+            for j in range(i + 1, net.t.nconns):
                 r1 = net.t.lightpaths[i].r
                 r2 = net.t.lightpaths[j].r
                 # cross compare routers over indicies m and n
@@ -51,7 +51,7 @@ def vertex_coloring(net: Network, lightpath: Lightpath) -> Union[int, None]:
                             H[j][i] = 1
 
     colors = {}
-    for i in range(net.t.num_conns):
+    for i in range(net.t.nconns):
         wavelength = net.t.lightpaths[i].w
         if wavelength is not None:
             colors[i] = wavelength
