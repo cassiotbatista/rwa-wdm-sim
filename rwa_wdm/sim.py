@@ -13,11 +13,12 @@ problem.
 # [1] https://la.mathworks.com/matlabcentral/fileexchange/4797-wdm-network-blocking-computation-toolbox
 
 import logging
+from timeit import default_timer  # https://stackoverflow.com/a/25823885/3798300
 from typing import Callable
 
 import numpy as np
 
-from .io import write_results_to_disk, plot_blocking_probability
+from .io import write_bp_to_disk, write_it_to_disk, plot_bp
 from .net import Network
 
 logger = logging.getLogger(__name__)
@@ -92,7 +93,9 @@ def simulator(args):
         print('%4d' % i, end=' ')
     print()
 
+    time_per_simulation = []
     for simulation in range(args.num_sim):
+        _sim_time = default_timer()
         net = get_net_instance_from_args(args.topology, args.channels)
         rwa = get_rwa_algorithm_from_args(args.r, args.w, args.rwa,
                                           args.pop_size, args.num_gen,
@@ -190,17 +193,22 @@ def simulator(args):
             blocklist.append(blocks)
             blocks_per_erlang.append(100.0 * blocks / args.calls)
 
+        _sim_time = default_timer() - _sim_time
+        time_per_simulation.append(_sim_time)
+
         print('\rBlocks: ', end='', flush=True)
         for b in blocklist:
             print('%04d ' % b, end='', flush=True)
         print('\n%-7s ' % net.name, end='')
         print(' '.join(['%4.1f' % b for b in blocks_per_erlang]))
 
-        filename = '%s_%dch_%dreq_%s.bp' % (
+        fbase = '%s_%dch_%dreq_%s' % (
             args.rwa if args.rwa is not None else '%s_%s' % (args.r, args.w),
             args.channels, args.calls, net.name)
 
-        write_results_to_disk(args.result_dir, filename, blocks_per_erlang)
+        write_bp_to_disk(args.result_dir, fbase + '.bp', blocks_per_erlang)
+
+    write_it_to_disk(args.result_dir, fbase + '.it', time_per_simulation)
 
     if args.plot:
-        plot_blocking_probability(args.result_dir)
+        plot_bp(args.result_dir)

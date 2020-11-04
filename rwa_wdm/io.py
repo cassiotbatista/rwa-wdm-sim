@@ -5,14 +5,16 @@
 import os
 import glob
 import logging
+from typing import List
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-logger = logging.getLogger(__name__)  # noqa
+logger = logging.getLogger(__name__)
 
 
-def write_results_to_disk(result_dir, filename, bplist):
+def write_bp_to_disk(result_dir: str,
+                     filename: str, bplist: List[float]) -> None:
     """Write blocking probabilities to text file
 
     """
@@ -21,14 +23,29 @@ def write_results_to_disk(result_dir, filename, bplist):
         os.mkdir(result_dir)
 
     filepath = os.path.join(result_dir, filename)
-    logger.info('Writing results to file "%s"' % filepath)
+    logger.info('Writing blocking probability results to file "%s"' % filepath)
     with open(filepath, 'a') as f:
         for bp in bplist:
             f.write(' %7.3f' % bp)
         f.write('\n')
 
+def write_it_to_disk(result_dir: str,
+                     filename: str, itlist: List[float]) -> None:
+    """Write profiling time information to text file
 
-def plot_blocking_probability(result_dir):
+    """
+    if not os.path.isdir(result_dir):
+        logger.info('Creating result dir in %s' % result_dir)
+        os.mkdir(result_dir)
+
+    filepath = os.path.join(result_dir, filename)
+    logger.info('Writing simulation profiling times to file "%s"' % filepath)
+    with open(filepath, 'a') as f:
+        for it in itlist:
+            f.write(' %7.7f' % it)
+
+
+def plot_bp(result_dir: str) -> None:
     """Reads blocking probabilities from file and plot overlapping graph
 
     """
