@@ -6,7 +6,8 @@ from .wlassignment import vertex_coloring, first_fit
 from .ga import GeneticAlgorithm
 
 # genetic algorithm object (global)
-ga = None  # FIXME this looks bad. perhaps this whole script should be a class
+# FIXME this looks bad. perhaps this whole script should be a class
+ga: Union[GeneticAlgorithm, None] = None
 
 
 def dijkstra_vertex_coloring(net: Network, k: int) -> Union[Lightpath, None]:

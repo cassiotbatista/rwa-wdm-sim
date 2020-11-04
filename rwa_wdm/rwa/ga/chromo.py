@@ -15,20 +15,17 @@ class Fitness(object):
     available per route, and number of hops in the route.
     """
 
-    def __init__(self,
-                 labels: List[int] = None,
-                 lambdas: int = None,
-                 hops: int = None) -> None:
-        self._gof_labels: List[int] = labels
+    def __init__(self, labels: np.ndarray, lambdas: int, hops: int) -> None:
+        self._gof_labels: np.ndarray = labels
         self._num_wavelenths_available: int = lambdas
         self._route_length: int = hops
 
     @property
-    def labels(self) -> List[int]:
+    def labels(self) -> np.ndarray:
         return self._gof_labels
 
     @labels.setter
-    def labels(self, value: List[int]) -> None:
+    def labels(self, value: np.ndarray) -> None:
         self._gof_labels = value
 
     @property
@@ -58,8 +55,7 @@ class Chromosome(object):
 
     _ids = count(0)
 
-    def __init__(self,
-                 genes: List[int] = [],
+    def __init__(self, genes: List[int],
                  fitness: Fitness = None) -> None:
         self._id: int = next(self._ids)
         self._genes: List[int] = genes

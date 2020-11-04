@@ -15,7 +15,6 @@ class Population(object):
 
     def __init__(self):
         self._individuals: List[Chromosome] = []
-        self._best_fits = []
 
     def make_chromosome(self, mat: np.ndarray,
                         s: int, d: int, allels: Set[int],
@@ -52,7 +51,7 @@ class Population(object):
 
         if len(genes) > max_size:
             return None
-        return Chromosome(genes, None)
+        return Chromosome(genes)
 
     def add_chromosome(self, chromosome: Chromosome) -> None:
         self._individuals.append(chromosome)

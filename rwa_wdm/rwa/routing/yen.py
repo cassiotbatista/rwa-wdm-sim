@@ -8,7 +8,7 @@ import numpy as np
 import networkx as nx
 
 
-def yen(mat: np.ndarray, s: int, d: int, k: int) -> List[int]:
+def yen(mat: np.ndarray, s: int, d: int, k: int) -> List[List[int]]:
     """Yen's routing algorithm, a.k.a. K-shortest paths
 
     """

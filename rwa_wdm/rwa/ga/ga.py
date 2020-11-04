@@ -18,7 +18,7 @@ class GeneticAlgorithm(object):
         self._num_generations: int = num_gen
         self._crossover_rate: float = cross_rate
         self._mutation_rate: float = mut_rate
-        self._best_fits = []
+        self._best_fits: List[int] = []
 
     @property
     def bestfit(self) -> List[int]:

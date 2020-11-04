@@ -11,7 +11,7 @@ from typing import Iterable, List, Tuple
 import numpy as np
 import matplotlib.pyplot as plt
 
-logger = logging.getLogger(__name__)  # noqa
+logger = logging.getLogger(__name__)
 
 
 class Lightpath(object):
@@ -111,8 +111,8 @@ class TrafficMatrix(np.ndarray):
         obj = np.asarray(arr, dtype=np.float32).view(cls)
 
         # set extra parameters
-        obj._usage = np.zeros(num_ch, dtype=np.uint16)
-        obj._lightpaths = []
+        obj._usage: np.ndarray = np.zeros(num_ch, dtype=np.uint16)
+        obj._lightpaths: List[Lightpath] = []
 
         return obj
 
@@ -123,7 +123,7 @@ class TrafficMatrix(np.ndarray):
         self._lightpaths = getattr(obj, "_lightpaths", None)
 
     @property
-    def lightpaths(self) -> List[int]:
+    def lightpaths(self) -> List[Lightpath]:
         return self._lightpaths
 
     @property
@@ -136,7 +136,7 @@ class TrafficMatrix(np.ndarray):
     def add_lightpath(self, lightpath: Lightpath) -> None:
         self._lightpaths.append(lightpath)
 
-    # this seems silly, but...
+    # FIXME this seems silly, but...
     # https://stackoverflow.com/questions/9140857/oop-python-removing-class-instance-from-a-list/9140906
     def remove_lightpath_by_id(self, _id: int) -> None:
         for i, lightpath in enumerate(self.lightpaths):
@@ -181,6 +181,14 @@ class Network(object):
                 random_time = self._n[i][j][w] * np.random.rand()
                 self._t[i][j][w] = random_time
                 self._t[j][i][w] = self._t[i][j][w]
+
+    # Children are responsible for overriding this method
+    def get_edges(self):
+        raise NotImplementedError
+
+    # Children are responsible for overriding this method
+    def get_nodes_2D_pos(self):
+        raise NotImplementedError
 
     @property
     def n(self) -> np.ndarray:

@@ -29,6 +29,7 @@ def write_bp_to_disk(result_dir: str,
             f.write(' %7.3f' % bp)
         f.write('\n')
 
+
 def write_it_to_disk(result_dir: str,
                      filename: str, itlist: List[float]) -> None:
     """Write profiling time information to text file
