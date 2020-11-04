@@ -95,7 +95,7 @@ def simulator(args):
 
     time_per_simulation = []
     for simulation in range(args.num_sim):
-        _sim_time = default_timer()
+        sim_time = default_timer()
         net = get_net_instance_from_args(args.topology, args.channels)
         rwa = get_rwa_algorithm_from_args(args.r, args.w, args.rwa,
                                           args.pop_size, args.num_gen,
@@ -141,9 +141,10 @@ def simulator(args):
                             lightpath = None
                             break
 
-                # Check if λ was not available either at the first link from the
-                # source or at any other further link along the route. Otherwise,
-                # we allocate resources on the network for the lightpath.
+                # Check if λ was not available either at the first link from
+                # the source or at any other further link along the route.
+                # Otherwise, allocate resources on the network for the
+                # lightpath.
                 if lightpath is None:
                     blocks += 1
                 else:
@@ -192,14 +193,15 @@ def simulator(args):
             blocklist.append(blocks)
             blocks_per_erlang.append(100.0 * blocks / args.calls)
 
-        _sim_time = default_timer() - _sim_time
-        time_per_simulation.append(_sim_time)
+        sim_time = default_timer() - sim_time
+        time_per_simulation.append(sim_time)
 
         print('\rBlocks: ', end='', flush=True)
         for b in blocklist:
             print('%04d ' % b, end='', flush=True)
-        print('\n%-7s ' % net.name, end='')
-        print(' '.join(['%4.1f' % b for b in blocks_per_erlang]))
+        print('\n%-7s ' % 'BP (%):', end='')
+        print(' '.join(['%4.1f' % b for b in blocks_per_erlang]), end=' ')
+        print('[sim %d: %.2f secs]' % (simulation + 1, sim_time))
 
         fbase = '%s_%dch_%dreq_%s' % (
             args.rwa if args.rwa is not None else '%s_%s' % (args.r, args.w),
