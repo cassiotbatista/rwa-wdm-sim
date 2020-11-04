@@ -86,13 +86,13 @@ class AdjacencyMatrix(np.ndarray):
 
 
 class WavelengthAvailabilityMatrix(np.ndarray):
-    """2D array of int16-valued availability units (bitwise ops required)
+    """3D array of int16-valued availability units
 
     """
 
-    def __new__(cls, num_nodes):
-        arr = np.zeros((num_nodes, num_nodes))  # TODO this should be 3D :'(
-        obj = np.asarray(arr, dtype=np.uint16).view(cls)
+    def __new__(cls, num_nodes, num_ch):
+        arr = np.zeros((num_nodes, num_nodes, num_ch))
+        obj = np.asarray(arr, dtype=np.bool).view(cls)
 
         return obj
 
@@ -153,15 +153,17 @@ class Network(object):
         self._num_nodes = num_nodes
         self._num_links = num_links
 
-        self._n = WavelengthAvailabilityMatrix(self._num_nodes)
+        self._n = WavelengthAvailabilityMatrix(self._num_nodes,
+                                               self._num_channels)
         self._a = AdjacencyMatrix(self._num_nodes)
         self._t = TrafficMatrix(self._num_nodes, self._num_channels)
 
         # fill in wavelength availability matrix
         for (i, j) in self.get_edges():
-            av = np.random.randint(1, 2 ** self._num_channels, dtype=np.uint16)
-            self._n[i][j] = av
-            self._n[j][i] = self._n[i][j]
+            for w in range(self._num_channels):
+                availability = np.random.choice((0, 1))
+                self._n[i][j][w] = availability
+                self._n[j][i][w] = self._n[i][j][w]
 
         # fill in adjacency matrix
         for (i, j) in self.get_edges():
@@ -175,9 +177,8 @@ class Network(object):
         # since decreasing values by until_next leads T to be uneven and
         # unbalanced
         for (i, j) in self.get_edges():
-            av = format(self._n[i][j], '0%db' % self._num_channels)
             for w in range(self._num_channels):
-                random_time = int(av[w]) * np.random.rand()
+                random_time = self._n[i][j][w] * np.random.rand()
                 self._t[i][j][w] = random_time
                 self._t[j][i][w] = self._t[i][j][w]
 
@@ -216,9 +217,6 @@ class Network(object):
     @property
     def nlinks(self) -> int:
         return self._num_links
-
-    def get_wave_availability(self, k, n):
-        return (int(n) & (1 << k)) >> k
 
     def plot_topology(self, bestroute=False) -> None:
         fig = plt.figure()

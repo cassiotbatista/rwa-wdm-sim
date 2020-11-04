@@ -137,8 +137,7 @@ def simulator(args):
                     # check if the color chosen at the first link is available
                     # on all remaining links of the route
                     for (i, j) in lightpath.links:
-                        if not net.get_wave_availability(lightpath.w,
-                                                         net.n[i][j]):
+                        if not net.n[i][j][lightpath.w]:
                             lightpath = None
                             break
 
@@ -151,11 +150,11 @@ def simulator(args):
                     lightpath.holding_time = holding_time
                     net.t.add_lightpath(lightpath)
                     for (i, j) in lightpath.links:
-                        net.n[i][j] -= 2 ** lightpath.w  # lock channel (bit: 0)
+                        net.n[i][j][lightpath.w] = 0  # lock channel
                         net.t[i][j][lightpath.w] = holding_time
 
                         # make it symmetric
-                        net.n[j][i] = net.n[i][j]
+                        net.n[j][i][lightpath.w] = net.n[i][j][lightpath.w]
                         net.t[j][i][lightpath.w] = net.t[i][j][lightpath.w]
 
                 # FIXME The following two routines below are part of the same
@@ -183,12 +182,12 @@ def simulator(args):
                         else:
                             # time's up: free channel
                             net.t[i][j][w] = 0
-                            if not net.get_wave_availability(w, net.n[i][j]):
-                                net.n[i][j] += 2 ** w  # free channel (bit: 1)
+                            if not net.n[i][j][w]:
+                                net.n[i][j][w] = 1  # free channel
 
                         # make matrices symmetric
                         net.t[j][i][w] = net.t[i][j][w]
-                        net.n[j][i] = net.n[j][i]
+                        net.n[j][i][w] = net.n[j][i][w]
 
             blocklist.append(blocks)
             blocks_per_erlang.append(100.0 * blocks / args.calls)

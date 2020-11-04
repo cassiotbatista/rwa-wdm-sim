@@ -14,6 +14,6 @@ def first_fit(net: Network, route: List[int]) -> Union[int, None]:
     """
     i, j = route[0], route[1]
     for w in range(net.nchannels):
-        if net.get_wave_availability(w, net.n[i][j]):
+        if net.n[i][j][w]:
             return w
     return None
