@@ -1,5 +1,9 @@
+#!/usr/bin/env python
+# PYTHON_ARGCOMPLETE_OK
+
 import os
 import logging
+import argcomplete
 import argparse
 import tempfile
 
@@ -75,6 +79,13 @@ ga.add_argument('--cross-rate', type=float, default=0.40,
 ga.add_argument('--mut-rate', type=float, default=0.02,
                 help='mutation rate')
 
+# FIXME this ain't working on my machine and I have no clue why
+argcomplete.autocomplete(parser)
+argcomplete.autocomplete(net)
+argcomplete.autocomplete(rwa)
+argcomplete.autocomplete(sim)
+argcomplete.autocomplete(ga)
+
 if __name__ == '__main__':
     args = parser.parse_args()
     try:
@@ -83,8 +94,8 @@ if __name__ == '__main__':
         logger.error('Bad input: %s', e)
     else:
         logger.info('Simulating %s connection requests over %s topology with '
-                    '%d λ per link using %s as RWA algorithm' % \
+                    '%d λ per link using %s as RWA algorithm' %
                     (args.calls, args.topology, args.channels,
-                     args.rwa if args.rwa is not None else \
+                     args.rwa if args.rwa is not None else
                      '%s + %s combination' % (args.r, args.w)))
         simulator(args)
