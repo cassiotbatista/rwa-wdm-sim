@@ -55,9 +55,12 @@ def plot_bp(result_dir: str) -> None:
         filelist.append(os.path.basename(f))
         data = np.loadtxt(f)
         if data.ndim == 1:
-            plt.plot(data, '--')
+            max_load =  data.shape[0] + 1
+            plt.plot(np.arange(1, max_load), data, '--')
         else:
-            plt.plot(data.mean(axis=0), '--')
+            max_load =  data.shape[1] + 1
+            plt.plot(np.arange(1, max_load), data.mean(axis=0), '--')
+        plt.xlim(0.5, max_load - 0.5)
         if data.ndim == 1 or data.shape[0] < 10:
             logger.warning('Remember you should simulate at least 10 times '
                            '(found only %d in %s)' % (data.shape[0], f))
