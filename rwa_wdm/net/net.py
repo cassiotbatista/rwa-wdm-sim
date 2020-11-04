@@ -22,7 +22,7 @@ class Lightpath(object):
     # https://stackoverflow.com/questions/8628123/counting-instances-of-a-class
     _ids = count(0)
 
-    def __init__(self, route: List[int] = [], wavelength: int = None):
+    def __init__(self, route: List[int], wavelength: int):
         self._id: int = next(self._ids)
         self._route: List[int] = route
         self._wavelength: int = wavelength
