@@ -2,7 +2,7 @@ import setuptools
 
 description='''Routing and wavelength assignment simulator over WDM networks
 
-More information on GitHub: https://github.com/cassiobatista/rwa-wdm-sim
+More information on https://rwa-wdm.readthedocs.io/en/latest/index.html
 '''
 
 setuptools.setup(
