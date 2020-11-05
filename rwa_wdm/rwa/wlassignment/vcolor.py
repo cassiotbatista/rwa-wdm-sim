@@ -1,3 +1,7 @@
+"""Vertex coloring wavelength assignment strategy
+
+"""
+
 from itertools import count
 from typing import Union
 
@@ -8,33 +12,24 @@ import networkx as nx
 from ...net import Network, Lightpath
 
 
-def greedy_color(H, colors):
-    """Vertex coloring strategy
-
-    """
-    G = nx.from_numpy_matrix(H, create_using=nx.Graph())
-
-    if len(G):
-        u = H.shape[0] - 1
-        neighbour_colors = {colors[v] for v in G[u] if v in colors}
-        for color in count():
-            if color not in neighbour_colors:
-                break
-
-        # assign the node the newly found color
-        return color
-
-
 def vertex_coloring(net: Network, lightpath: Lightpath) -> Union[int, None]:
     """Vertex coloring algorithm
+
+    Args:
+        net: Network object
+        lightpath: the lightpath we are trying to allocate a λ to
+
+    Returns:
+        :obj:`int`: upon wavelength assignment success, return the wavelength
+            index to be used on the lightpath
 
     """
     net.t.add_lightpath(lightpath)  # this is temporary
 
     # NOTE `nconns` gotta be at least one for this to work. The current
     # route is assumed to be already in the graph when vertex coloring
-    # strategies take place, because the route we are trying to find a λ to
-    # must be already accounted for as part of the "group" of routes.
+    # strategies take place, because the route we are trying to find a λ
+    # to must be already accounted for as part of the "group" of routes.
     H = np.zeros((net.t.nconns, net.t.nconns), dtype=np.uint16)
     if net.t.nconns > 1:
         # cross compare paths over indices i and j
@@ -58,4 +53,17 @@ def vertex_coloring(net: Network, lightpath: Lightpath) -> Union[int, None]:
 
     net.t.remove_lightpath_by_id(lightpath.id)  # I told you it was temporary
 
-    return greedy_color(H, colors)
+    # The following is like NetworkX's greedy color procedure
+    G = nx.from_numpy_matrix(H, create_using=nx.Graph())
+
+    if len(G):
+        u = H.shape[0] - 1
+        neighbour_colors = {colors[v] for v in G[u] if v in colors}
+        for color in count():
+            if color not in neighbour_colors:
+                break
+
+        # assign the node the newly found color
+        return color
+    else:
+        return None  # NOTE I think this is never called

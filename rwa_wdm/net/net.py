@@ -12,11 +12,32 @@ from typing import Iterable, List, Tuple
 import numpy as np
 import matplotlib.pyplot as plt
 
+__all__ = (
+    'Lightpath',
+    'AdjacencyMatrix',
+    'WavelengthAvailabilityMatrix',
+    'TrafficMatrix',
+    'Network',
+)
+
 logger = logging.getLogger(__name__)
 
 
 class Lightpath(object):
     """Emulates a lightpath composed by a route and a wavelength channel
+
+    Lightpath is pretty much a regular path, but must also specify a wavelength
+    index, since WDM optical networks span multiple wavelength channels over a
+    single fiber link on the topology.
+
+    A Lightpath object also store a holding time parameter, which is set along
+    the simulation to specify how long the connection may be alive and running
+    on network links, and therefore taking up space in the traffic matrix,
+    before it finally terminates and resources are deallocated.
+
+    Args:
+        route: a liste of nodes encoded as integer indices
+        wavelength: a single number representing the wavelength channel index
 
     """
 
@@ -31,16 +52,19 @@ class Lightpath(object):
 
     @property
     def id(self) -> int:
+        """A unique identifier to the Lightpath object"""
         return self._id
 
     @property
     def r(self) -> List[int]:
+        """The path as a sequence of router indices"""
         return self._route
 
     # https://stackoverflow.com/questions/5389507/iterating-over-every-two-elements-in-a-list
     # pairwise: https://docs.python.org/3/library/itertools.html
     @property
     def links(self) -> Iterable[Tuple[int, int]]:
+        """Network links as a sequence of pairs of nodes"""
         iterable = iter(self._route)
         while True:
             try:
@@ -48,15 +72,14 @@ class Lightpath(object):
             except StopIteration:
                 return
 
-    def add_router(self, router: int) -> None:
-        self._route.append(router)
-
     @property
     def w(self) -> int:
+        """The wavelength channel index"""
         return self._wavelength
 
     @property
     def holding_time(self) -> float:
+        """Time that the lightpath remains occupying net resources"""
         return self._holding_time
 
     @holding_time.setter
@@ -71,11 +94,19 @@ class Lightpath(object):
 
 
 class AdjacencyMatrix(np.ndarray):
-    """2D array of boolean-valued neighbourhood information
+    """Boolean 2D matrix that stores network neighbourhood info
+
+    The adjacency matrix is basically a binary, bidimensional matrix that
+    informs whether two nodes in a network physical topology are neighbours,
+    i.e,. share a link connection. This class is a subclass of a NumPy array.
+
+    Args:
+        num_nodes: number of nodes in the network, which define a square
+            matrix's dimensions
 
     """
 
-    def __new__(cls, num_nodes):
+    def __new__(cls, num_nodes: int):
         arr = np.zeros((num_nodes, num_nodes))
         obj = np.asarray(arr, dtype=np.bool).view(cls)
 
@@ -87,11 +118,21 @@ class AdjacencyMatrix(np.ndarray):
 
 
 class WavelengthAvailabilityMatrix(np.ndarray):
-    """3D array of int16-valued availability units
+    """Boolean 3D matrix that stores network wavelength availability info
+
+    The wavelength availability matrix is a tridimensional, binary matrix that
+    stores information on whether a particular wavelength λ is available on an
+    optical link (i, j). This class is a subclass of a NumPy array.
+
+    Args:
+        num_nodes: number of nodes in the network, which defines two of the
+            matrix's dimensions
+        num_ch: number of wavelength channels on each link, defining the shape
+            of the third dimension of the matrix
 
     """
 
-    def __new__(cls, num_nodes, num_ch):
+    def __new__(cls, num_nodes: int, num_ch: int):
         arr = np.zeros((num_nodes, num_nodes, num_ch))
         obj = np.asarray(arr, dtype=np.bool).view(cls)
 
@@ -103,11 +144,17 @@ class WavelengthAvailabilityMatrix(np.ndarray):
 
 
 class TrafficMatrix(np.ndarray):
-    """3D array of float32-valued timestamps
+    """Boolean 3D matrix that stores traffic info
+
+    Args:
+        num_nodes: number of nodes in the network, which defines two of the
+            matrix's dimensions
+        num_ch: number of wavelength channels on each link, defining the shape
+            of the third dimension of the matrix
 
     """
 
-    def __new__(cls, num_nodes, num_ch):
+    def __new__(cls, num_nodes: int, num_ch: int):
         arr = np.zeros((num_nodes, num_nodes, num_ch))
         obj = np.asarray(arr, dtype=np.float32).view(cls)
 
@@ -125,21 +172,32 @@ class TrafficMatrix(np.ndarray):
 
     @property
     def lightpaths(self) -> List[Lightpath]:
+        """The list of connections (lightpaths) currently running"""
         return self._lightpaths
 
     @property
     def nconns(self):
+        """The number of connections (lightpaths) currently running"""
         return len(self._lightpaths)
 
-    def usage(self, wavelength: int) -> np.uint16:
-        return self._usage[wavelength]
-
     def add_lightpath(self, lightpath: Lightpath) -> None:
+        """Add a lightpath to the list of lightpath
+
+        Args:
+            lightpath: a Lightpath instance
+
+        """
         self._lightpaths.append(lightpath)
 
     # FIXME this seems silly, but...
     # https://stackoverflow.com/questions/9140857/oop-python-removing-class-instance-from-a-list/9140906
     def remove_lightpath_by_id(self, _id: int) -> None:
+        """Remove a lightpath from the list of currently running connections
+
+        Args:
+            _id: the unique identifier of a lightpath
+
+        """
         for i, lightpath in enumerate(self.lightpaths):
             if lightpath.id == _id:
                 del self._lightpaths[i]
@@ -147,9 +205,21 @@ class TrafficMatrix(np.ndarray):
 
 
 class Network(object):
-    """Network base class"""
+    """Network base class
 
-    def __init__(self, num_channels, num_nodes, num_links):
+    Hols network properties such as adjacency, wavelength-availability and
+    traffic graph matrices, fixed source and destination nodes for all
+    connections, number of λ channels per link
+
+    Args:
+        num_channels: number of wavelength channels per link
+        num_nodes: number of routes along the path
+        num_links: number of links along the path, typically `num_nodes` - 1
+
+    """
+
+    def __init__(self,
+                 num_channels: int, num_nodes: int, num_links: int) -> None:
         self._num_channels = num_channels
         self._num_nodes = num_nodes
         self._num_links = num_links
@@ -193,41 +263,57 @@ class Network(object):
 
     @property
     def n(self) -> np.ndarray:
+        """The wavelength availability matrix graph"""
         return self._n
 
     @property
     def a(self) -> np.ndarray:
+        """The adjacency matrix graph"""
         return self._a
 
     @property
     def t(self) -> np.ndarray:
+        """The traffic matrix"""
         return self._t
 
     @property
     def s(self) -> int:
+        """The source node"""
         return self._s
 
     @property
     def d(self) -> int:
+        """The destination node"""
         return self._d
 
     @property
     def name(self) -> str:
+        """The short name tag idenfier of the network topology"""
         return self._name
 
     @property
     def nchannels(self) -> int:
+        """The number of wavelength channels per fiber link"""
         return self._num_channels
 
     @property
     def nnodes(self) -> int:
+        """The number of router nodes (vertices) in the network"""
         return self._num_nodes
 
     @property
     def nlinks(self) -> int:
+        """The number of links (edges) in the network"""
         return self._num_links
 
     def plot_topology(self, bestroute: List[int] = None) -> None:
+        """Plots the physical topology in a 2D Cartesian plan
+
+        Args:
+            bestroute: a route encoded as a list of router indices to be
+                highlighted in red over some network edges
+
+        """
         fig, ax = plt.subplots()
         ax.grid()
 

@@ -1,6 +1,12 @@
-#!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
+"""Enable the execution of "rwa_wdm" package as a command line program with the
+``-m`` switch. For example:
 
+.. code-block:: sh
+
+    python -m rwa_wdm -t janet -r dijkstra -w vertex-coloring -s 10 -p
+
+"""
 import os
 import logging
 import argcomplete

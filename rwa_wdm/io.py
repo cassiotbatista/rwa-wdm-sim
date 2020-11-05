@@ -10,12 +10,20 @@ from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
 
+__all__ = ('write_bp_to_disk', 'write_it_to_disk', 'plot_bp')
+
 logger = logging.getLogger(__name__)
 
 
 def write_bp_to_disk(result_dir: str,
                      filename: str, bplist: List[float]) -> None:
-    """Write blocking probabilities to text file
+    """Writes blocking probabilities to text file
+
+    Args:
+        result_dir: directory to write files to
+        filename: name of the file to be written
+        itlist: list of blocking probability values, as percentages, to be
+            dumped to file
 
     """
     if not os.path.isdir(result_dir):
@@ -32,7 +40,12 @@ def write_bp_to_disk(result_dir: str,
 
 def write_it_to_disk(result_dir: str,
                      filename: str, itlist: List[float]) -> None:
-    """Write profiling time information to text file
+    """Writes profiling time information to text file
+
+    Args:
+        result_dir: directory to write files to
+        filename: name of the file to be written
+        itlist: list of times, in seconds, to be dumped to file
 
     """
     if not os.path.isdir(result_dir):
@@ -48,6 +61,9 @@ def write_it_to_disk(result_dir: str,
 
 def plot_bp(result_dir: str) -> None:
     """Reads blocking probabilities from file and plot overlapping graph
+
+    Args:
+        result_dir: directory that stores files to be read
 
     """
     filelist = []

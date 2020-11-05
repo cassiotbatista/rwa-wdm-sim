@@ -3,11 +3,23 @@ from typing import List
 
 import numpy as np
 
+__all__ = (
+    'gof',
+)
+
 logger = logging.getLogger(__name__)
 
 
 def gof(mat: np.ndarray, num_ch: int, route: List[int]) -> np.ndarray:
-    """General objective function
+    """General objective function (GOF)
+
+    Args:
+        mat: Network's wavelength availability matrix
+        num_ch: number of λ channels on each link
+        route: the physical path as a sequence of router indices
+
+    Returns:
+        np.ndarray: GOF labels
 
     """
     L = np.zeros(num_ch + 1)  # GOF labels

@@ -1,12 +1,4 @@
-"""RWA WDM: Routing and Wavelength Assignment Simulator over WDM Networks
-
-This is a simulator for RWA algorithms over wavelength-multiplexed, all-optical
-networks with static traffic. It implements some mainstream algorithms for both
-routing and wavelength assignment subproblems, such as Dijkstra and Yen, and
-first-fit and vertex-coloring, respectively.
-
-Besides, a self-made genetic algorithms is also implemented to solve the RWA
-problem.
+"""RWA simulator main function
 
 """
 
@@ -15,17 +7,38 @@ problem.
 import logging
 from timeit import default_timer  # https://stackoverflow.com/a/25823885/3798300
 from typing import Callable
+from argparse import Namespace
 
 import numpy as np
 
 from .io import write_bp_to_disk, write_it_to_disk, plot_bp
 from .net import Network
 
+__all__ = (
+    'get_net_instance_from_args',
+    'get_rwa_algorithm_from_args',
+    'simulator'
+)
+
 logger = logging.getLogger(__name__)
 
 
 def get_net_instance_from_args(topname: str, numch: int) -> Network:
-    """Parse args and return a Network topology instance
+    """Instantiates a Network object from CLI string identifiers
+
+    This is useful because rwa_wdm supports multiple network topology
+    implementations, so this function acts like the instance is created
+    directly.
+
+    Args:
+        topname: short identifier for the network topology
+        numch: number of wavelength channels per network link
+
+    Returns:
+        Network: network topology instance
+
+    Raises:
+        ValueError: if `topname` is not a valid network identifier
 
     """
     if topname == 'nsf':
@@ -47,7 +60,25 @@ def get_net_instance_from_args(topname: str, numch: int) -> Network:
 def get_rwa_algorithm_from_args(r_alg: str, wa_alg: str, rwa_alg: str,
                                 ga_popsize: int, ga_ngen: int,
                                 ga_xrate: float, ga_mrate: float) -> Callable:
-    """Parse args and returns a function that performs rwa
+    """Defines the main function to perform RWA from CLI string args
+
+    Args:
+        r_alg: identifier for a sole routing algorithm
+        wa_alg: identifier for a sole wavelength assignment algorithm
+        rwa_alg: identifier for a routine that performs RWA as one
+        ga_popsize: population size for the GA-RWA procedure
+        ga_ngen: number of generations for the GA-RWA procedure
+        ga_xrate: crossover rate for the GA-RWA procedure
+        ga_mrate: mutation rate for the GA-RWA procedure
+
+    Returns:
+        callable: a function that combines a routing algorithm and a
+            wavelength assignment algorithm if those are provided
+            separately, or an all-in-one RWA procedure
+    
+    Raises:
+        ValueError: if neither `rwa_alg` nor both `r_alg` and `wa_alg`
+            are provided
 
     """
 
@@ -82,8 +113,16 @@ def get_rwa_algorithm_from_args(r_alg: str, wa_alg: str, rwa_alg: str,
         raise ValueError('Algorithm not specified')
 
 
-def simulator(args):
-    """Eita jesus
+def simulator(args: Namespace) -> None:
+    """Main RWA simulation routine over WDM networks
+
+    The loop levels of the simulator iterate over the number of repetitions,
+    (simulations), the number of Erlangs (load), and the number of connection
+    requests (calls) to be either allocated on the network or blocked if no
+    resources happen to be available.
+
+    Args:
+        args: set of arguments provided via CLI to argparse module
 
     """
 

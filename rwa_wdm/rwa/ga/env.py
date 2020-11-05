@@ -1,3 +1,6 @@
+"""Environment related procedures
+
+"""
 import logging
 import numpy as np
 
@@ -6,11 +9,26 @@ from .chromo import Chromosome, Fitness
 from .pop import Population
 from ...net import Network
 
+__all__ = (
+    'evaluate',
+    'select',
+    'cross',
+    'mutate',
+)
+
 logger = logging.getLogger(__name__)
 
 
 def evaluate(net: Network, chromosome: Chromosome) -> Fitness:
     """Fitness calculation
+
+    Args:
+        net: Network instance object
+        chromosome: Chromosome object
+
+    Returns:
+        Fitness: Fitness object storing GOF labels, number of λ available per
+            link, and number of hops in the route
 
     """
     labels = gof(net.n, net.nchannels, chromosome.genes)
@@ -27,6 +45,15 @@ def select(population: Population,
     First we choose a random candidate from population. Then, under trials,
     we choose another candidate and compare the two fitnesses. The winner
     becomes the top candidate; loser is eliminated.
+
+    Args:
+        population: Population instance object after evaluation
+        pop_size: number of individuals in the mating pool pre-crossover
+        tourn_size: number of individuals to compete under the tournament pool
+
+    Returns:
+        Population: set of parents ready to mate under crossover operation
+
     """
     parents = Population()
     while len(parents) < pop_size:
@@ -43,6 +70,15 @@ def select(population: Population,
 
 def cross(parents: Population, pop_size: int, tc: float) -> Population:
     """One-point crossover strategy
+
+    Args:
+        parents: set of chromosomes ready to mate
+        pop_size: number of individuals in the offspring after crossover
+        tc: crossover rate, which defines the percentage of the selected
+            individuals to undergo crossover
+
+    Returns:
+        Population: set of children in offspring to undergo mutation operation
 
     """
     children = Population()
@@ -84,6 +120,16 @@ def mutate(children: Population, pop_size: int,
            tm: float, net: Network) -> Population:
     """Custom mutation procedure based on DFS-like path creation
 
+    Args:
+        children: Chromosome offspring after crossover
+        pop_size: number of individuals to compose the new population
+        tm: mutation rate, which defines the percentage of individuals to
+            undergo mutation
+        net: Network instance
+
+    Returns:
+        Population: set of chromosomes to compose the new population
+
     """
     population = Population()
     while len(population) < pop_size:
@@ -91,6 +137,7 @@ def mutate(children: Population, pop_size: int,
 
         # DO NOT perform mutation if:
         # route has only one link which directly connects source to target
+        # FIXME how the hell does it happen? It shouldn't ITFP.
         if len(normal_chrom) == 2:
             population.add_chromosome(normal_chrom)
             continue
