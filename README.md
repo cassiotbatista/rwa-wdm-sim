@@ -133,4 +133,4 @@ If you use this code, please cite us as one of the following:
 
 ## License
 
-MIT
+GPL v3.0
