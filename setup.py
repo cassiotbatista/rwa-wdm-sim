@@ -7,8 +7,8 @@ More information on https://rwa-wdm.readthedocs.io/en/latest/index.html
 
 setuptools.setup(
     name='rwa_wdm',
-    version='0.2.1',
-    license='MIT',
+    version='0.2.2',
+    license='GPL',
     author='Cassio Batista',
     author_email='cassiotb@ufpa.br',
     description='Routing and wavelength assignment simulator over WDM networks',
