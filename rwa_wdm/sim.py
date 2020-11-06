@@ -82,7 +82,7 @@ def get_rwa_algorithm_from_args(r_alg: str, wa_alg: str, rwa_alg: str,
 
     """
 
-    if r_alg is not None:  # NOTE implies `wa_alg` is not `None`
+    if r_alg is not None and wa_alg is not None:
         if r_alg == 'dijkstra':
             if wa_alg == 'vertex-coloring':
                 from .rwa import dijkstra_vertex_coloring
@@ -90,8 +90,12 @@ def get_rwa_algorithm_from_args(r_alg: str, wa_alg: str, rwa_alg: str,
             elif wa_alg == 'first-fit':
                 from .rwa import dijkstra_first_fit
                 return dijkstra_first_fit
+            elif wa_alg == 'random-fit':
+                from .rwa import dijkstra_random_fit
+                return dijkstra_random_fit
             else:
-                raise ValueError('Unknown algorithm "%s"' % wa_alg)
+                raise ValueError('Unknown wavelength assignment '
+                                 'algorithm "%s"' % wa_alg)
         elif r_alg == 'yen':
             if wa_alg == 'vertex-coloring':
                 from .rwa import yen_vertex_coloring
@@ -99,18 +103,22 @@ def get_rwa_algorithm_from_args(r_alg: str, wa_alg: str, rwa_alg: str,
             elif wa_alg == 'first-fit':
                 from .rwa import yen_first_fit
                 return yen_first_fit
+            elif wa_alg == 'random-fit':
+                from .rwa import yen_random_fit
+                return yen_random_fit
             else:
-                raise ValueError('Unknown algorithm "%s"' % wa_alg)
+                raise ValueError('Unknown wavelength assignment '
+                                 'algorithm "%s"' % wa_alg)
         else:
-            raise ValueError('Unknown algorithm "%s"' % r_alg)
+            raise ValueError('Unknown routing algorithm "%s"' % r_alg)
     elif rwa_alg is not None:
         if rwa_alg == 'genetic-algorithm':
             from .rwa import genetic_algorithm
             return genetic_algorithm(ga_popsize, ga_ngen, ga_xrate, ga_mrate)
         else:
-            raise ValueError('Unknown algorithm "%s"' % rwa_alg)
+            raise ValueError('Unknown RWA algorithm "%s"' % rwa_alg)
     else:
-        raise ValueError('Algorithm not specified')
+        raise ValueError('RWA algorithm not specified')
 
 
 def simulator(args: Namespace) -> None:

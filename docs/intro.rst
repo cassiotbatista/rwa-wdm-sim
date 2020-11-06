@@ -3,7 +3,7 @@ Introduction
 
 ``rwa_wdm`` implements some mainstream algorithms for both routing and
 wavelength assignment subproblems as standalone packages, such as Dijkstra and
-Yen, and first-fit and vertex-coloring, respectively.
+Yen, and first-fit, random-fit, and vertex-coloring, respectively.
 
 Besides, a self-made genetic algorithms is also implemented to solve the RWA
 problem.
@@ -26,6 +26,8 @@ Features
 * Wavelength assignment algorithms
 
     * First-fit
+
+    * Random-fit
 
     * Vertex-coloring
 

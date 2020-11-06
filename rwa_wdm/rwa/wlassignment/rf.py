@@ -1,17 +1,19 @@
-"""First-fit wavelength assignment strategy
+"""Random-fit wavelength assignment strategy
 
 """
 from typing import List, Union
+
+import numpy as np
 
 # FIXME https://mypy.readthedocs.io/en/latest/common_issues.html#import-cycles
 from ...net import Network
 
 
-def first_fit(net: Network, route: List[int]) -> Union[int, None]:
-    """First-fit algorithm
+def random_fit(net: Network, route: List[int]) -> Union[int, None]:
+    """Random-fit algorithm
 
-    Select the wavelength with the lowest index available at the first link of
-    the path, starting of course from the source node.
+    Select a random wavelength index from the fixed set of available
+    wavelengths
 
     Args:
         net: Network object
@@ -23,7 +25,7 @@ def first_fit(net: Network, route: List[int]) -> Union[int, None]:
 
     """
     i, j = route[0], route[1]
-    for w in range(net.nchannels):
-        if net.n[i][j][w]:
-            return w
-    return None
+    try:
+        return np.random.choice(np.flatnonzero(net.n[i][j]))
+    except ValueError:
+        return None

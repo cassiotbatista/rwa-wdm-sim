@@ -2,7 +2,7 @@ from typing import Callable, Union
 
 from ..net import Lightpath, Network
 from .routing import dijkstra, yen
-from .wlassignment import vertex_coloring, first_fit
+from .wlassignment import vertex_coloring, first_fit, random_fit
 from .ga import GeneticAlgorithm
 
 __all__ = (
@@ -57,6 +57,25 @@ def dijkstra_first_fit(net: Network, k: int) -> Union[Lightpath, None]:
     return None
 
 
+def dijkstra_random_fit(net: Network, k: int) -> Union[Lightpath, None]:
+    """Dijkstra and random-fit combination as RWA algorithm
+
+    Args:
+        net: Network topology instance
+        k: number of alternate paths (ignored)
+
+    Returns:
+        Lightpath: if successful, returns both route and wavelength index as a
+            lightpath
+
+    """
+    route = dijkstra(net.a, net.s, net.d)
+    wavelength = random_fit(net, route)
+    if wavelength is not None and wavelength < net.nchannels:
+        return Lightpath(route, wavelength)
+    return None
+
+
 def yen_vertex_coloring(net: Network, k: int) -> Union[Lightpath, None]:
     """Yen and vertex coloring combination as RWA algorithm
 
@@ -92,6 +111,26 @@ def yen_first_fit(net: Network, k: int) -> Union[Lightpath, None]:
     routes = yen(net.a, net.s, net.d, k)
     for route in routes:
         wavelength = first_fit(net, route)
+        if wavelength is not None and wavelength < net.nchannels:
+            return Lightpath(route, wavelength)
+    return None
+
+
+def yen_random_fit(net: Network, k: int) -> Union[Lightpath, None]:
+    """Yen and random-fit combination as RWA algorithm
+
+    Args:
+        net: Network topology instance
+        k: number of alternate paths (ignored)
+
+    Returns:
+        Lightpath: if successful, returns both route and wavelength index as a
+            lightpath
+
+    """
+    routes = yen(net.a, net.s, net.d, k)
+    for route in routes:
+        wavelength = random_fit(net, route)
         if wavelength is not None and wavelength < net.nchannels:
             return Lightpath(route, wavelength)
     return None

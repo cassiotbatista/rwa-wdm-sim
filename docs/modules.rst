@@ -54,6 +54,9 @@ Standalone wavelength assignment algorithms
 .. automodule:: rwa_wdm.rwa.wlassignment.ff
     :members:
 
+.. automodule:: rwa_wdm.rwa.wlassignment.rf
+    :members:
+
 .. automodule:: rwa_wdm.rwa.wlassignment.vcolor
     :members:
 
