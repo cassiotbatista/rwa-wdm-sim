@@ -7,7 +7,7 @@ More information on https://rwa-wdm.readthedocs.io/en/latest/index.html
 
 setuptools.setup(
     name='rwa_wdm',
-    version='0.2.2',
+    version='0.2.3',
     license='GPL',
     author='Cassio Batista',
     author_email='cassiotb@ufpa.br',

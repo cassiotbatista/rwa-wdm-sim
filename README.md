@@ -14,6 +14,7 @@ The following algorithms are implemented:
     - Yen's algorithm (also known as K-shortest path algorithm)    
 - Wavelength Assignment     
     - First-fit algorithm    
+    - Random-fit algorithm    
     - Vertex coloring algorithm    
 - RWA as one    
    - General Objective Function    
