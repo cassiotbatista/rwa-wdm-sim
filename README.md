@@ -50,6 +50,8 @@ As a module from CLI:
 $ python -m rwa_wdm -t rnp -c 8 -r dijkstra -w first-fit -d /tmp/results -p
 ```
 
+![Installation and dummy simulation](./docs/sim.gif)
+
 Alternatively, as a lib:
 
 ```python
