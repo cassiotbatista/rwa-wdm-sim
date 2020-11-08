@@ -5,7 +5,7 @@ wavelength assignment (RWA) problem over wavelength-division multiplexing
 (WDM)-based all-optical networks with static traffic (SLE, for static lightpath
 establishment).
 
-Documentation: https://rwa-wdm.readthedocs.io/en/latest/index.html
+:pencil: Documentation: https://rwa-wdm.readthedocs.io/en/latest/index.html
 
 The following algorithms are implemented:
 
@@ -26,12 +26,13 @@ allocated call remains in the network occupying resources) that follow the
 Poisson distribution. This model was ported from a [Matlab toolbox written by 
 Przemyslaw Pawelcza](https://la.mathworks.com/matlabcentral/fileexchange/4797-wdm-network-blocking-computation-toolbox).
 
+
 ## Installation
 
 Directly from PyPI via pip:
 
 ```bash
-$ pip install rwa_wdm
+$ pip install rwa-wdm
 ```
 
 Or, from source:
@@ -41,6 +42,7 @@ $ git clone htps://github.com/cassiobatista/rwa-wdm-sim.git
 $ cd rwa-wdm-sim/
 $ python setup.py install --skip-build
 ```
+
 
 ## Usage
 
@@ -55,19 +57,21 @@ $ python -m rwa_wdm -t rnp -c 8 -r dijkstra -w first-fit -d /tmp/results -p
 Alternatively, as a lib:
 
 ```python
+from rwa_wdm import simulator
 # TBD
 ```
 
+
 ## Requirements
 
-:warning: manual installation of required packages is necessary only if you're
+:warning: Manual installation of required packages is necessary only if you're
 debugging the source without properly installing the package via either PyPI or
 `setuptools`.
 
 We recommend the use of [Anaconda](https://www.anaconda.com/):
 
 ```bash
-$ conda create --name rwa python=3.8 networkx numpy matplotlib
+$ conda create --name rwa python=3.8 argcomplete networkx numpy matplotlib
 $ conda activate rwa
 ```
 
@@ -75,7 +79,7 @@ However, you can of course just use pip as well:
 
 ```bash
 $ pip install pip --upgrade
-$ pip install numpy matplotlib networkx
+$ pip install argcomplete numpy matplotlib networkx
 ```
 
 Or simply use the `requirements.txt` file:
@@ -83,6 +87,7 @@ Or simply use the `requirements.txt` file:
 ```bash
 $ pip install -r requirements.txt
 ```
+
 
 ## Citation
 
@@ -137,6 +142,7 @@ If you use this code, please cite us as one of the following:
     address   = {New York, NY, USA}
 }
 ```
+
 
 ## License
 
