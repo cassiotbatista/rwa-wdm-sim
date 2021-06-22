@@ -35,7 +35,7 @@ ga = parser.add_argument_group('Genetic algorithm options')
 
 # network topology options
 net.add_argument('-t', default='nsf', dest='topology',
-                 choices=['nsf', 'clara', 'janet', 'rnp'],
+                 choices=['nsf', 'clara', 'janet', 'rnp', 'geant'],
                  metavar='<topology>',
                  help='network topology')
 net.add_argument('-c', type=int, default=8, dest='channels',

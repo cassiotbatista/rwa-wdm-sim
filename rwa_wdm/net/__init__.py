@@ -3,5 +3,6 @@ from .clara import CooperacionLatinoAmericana
 from .janet import JointAcademicNetwork
 from .nsf import NationalScienceFoundation
 from .rnp import RedeNacionalPesquisa
+from .geant import GigabitEuropeanAcademic
 # from .arpa import AdvancedResearchProjectsAgency
 # from .italian import Italian
