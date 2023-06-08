@@ -109,6 +109,19 @@ def get_rwa_algorithm_from_args(r_alg: str, wa_alg: str, rwa_alg: str,
             else:
                 raise ValueError('Unknown wavelength assignment '
                                  'algorithm "%s"' % wa_alg)
+        elif r_alg == 'lora':
+         	if wa_alg == 'vertex-coloring':
+           		from .rwa import lora_vertex_coloring
+            	return lora_vertex_coloring
+            elif wa_alg == 'first-fit':
+             	from .rwa import lora_first_fit
+            return lora_first_fit
+            elif wa_alg == 'random_fit':
+             	from .rwa import lora_random_fit
+              	return lora_random_fit
+            else:
+             	raise ValueError('Unknown wavelength assignment '
+                                 'algorithm "%s"' % wa_alg)
         else:
             raise ValueError('Unknown routing algorithm "%s"' % r_alg)
     elif rwa_alg is not None:

@@ -11,6 +11,10 @@ __all__ = (
     'yen_vertex_coloring',
     'yen_first_fit',
     'genetic_algorithm',
+    'lora_vertex_coloring',
+ 	'lora_first_fit',
+ 	'lora_random_fit',
+ 	'lora_vertex_coloring'
 )
 
 
@@ -185,3 +189,63 @@ def genetic_algorithm(pop_size: int, num_gen: int,
     global ga
     ga = GeneticAlgorithm(pop_size, num_gen, cross_rate, mut_rate)
     return genetic_algorithm_callback
+
+
+def lora_first_fit(net: Network, k: int) -> Union[Lightpath, None]:
+    """LORA and first-fit combination as RWA algorithm
+
+    Args:
+        net: Network topology instance
+        k: number of alternate paths (ignored)
+
+    Returns:
+        Lightpath: if successful, returns both route and wavelength index as a
+            lightpath
+
+    """
+    routes = lora(net.a, net.s, net.d, k)
+    for route in routes:
+        wavelength = first_fit(net, route)
+        if wavelength is not None and wavelength < net.nchannels:
+            return Lightpath(route, wavelength)
+    return None
+
+
+def lora_random_fit(net: Network, k: int) -> Union[Lightpath, None]:
+    """LORA and random-fit combination as RWA algorithm
+
+    Args:
+        net: Network topology instance
+        k: number of alternate paths (ignored)
+
+    Returns:
+        Lightpath: if successful, returns both route and wavelength index as a
+            lightpath
+
+    """
+    routes = lora(net.a, net.s, net.d, k)
+    for route in routes:
+        wavelength = random_fit(net, route)
+        if wavelength is not None and wavelength < net.nchannels:
+            return Lightpath(route, wavelength)
+    return None
+
+
+def lora_vertex_coloring(net: Network, k: int) -> Union[Lightpath, None]:
+    """LORA and vertex coloring combination as RWA algorithm
+
+    Args:
+        net: Network topology instance
+        k: number of alternate paths (ignored)
+
+    Returns:
+        Lightpath: if successful, returns both route and wavelength index as a
+            lightpath
+
+    """
+    routes = lora(net.a, net.s, net.d, k)
+    for route in routes:
+        wavelength = vertex_coloring(net, route)
+        if wavelength is not None and wavelength < net.nchannels:
+            return Lightpath(route, wavelength)
+    return None

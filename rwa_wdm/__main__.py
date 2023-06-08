@@ -47,7 +47,7 @@ net.add_argument('-c', type=int, default=8, dest='channels',
 # TODO [ -r <algorithms> -w <algorithm> ] [ --rwa <algorithm> ]
 # https://stackoverflow.com/questions/17909294/python-argparse-mutual-exclusive-group
 rwa.add_argument('-r', metavar='<algorithm>',
-                 choices=['dijkstra', 'yen'],
+                 choices=['dijkstra', 'yen', 'lora'],
                  help='routing algorithm')
 rwa.add_argument('-w', metavar='<algorithm>',
                  choices=['vertex-coloring', 'first-fit', 'random-fit'],

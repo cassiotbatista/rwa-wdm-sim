@@ -5,5 +5,8 @@ from .rwa import (
     yen_vertex_coloring,
     yen_first_fit,
     yen_random_fit,
-    genetic_algorithm
+    genetic_algorithm,
+    lora_first_fit,
+ 	lora_random_fit,
+ 	lora_vertex_coloring
 )
